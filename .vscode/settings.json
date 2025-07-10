@@ -1,0 +1,28 @@
+{
+  "python.languageServer": "Pylance",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingModuleSource": "none"
+  },
+  "python.terminal.activateEnvironment": false,
+  "python.analysis.typeshedPaths": ["~/.micropico-stubs/included"],
+  "python.analysis.extraPaths": ["~/.micropico-stubs/included"],
+  "micropico.openOnStart": true,
+  "micropico.manualComDevice": "/dev/tty.usbmodem113201",
+  "micropico.autoConnect": false,
+  "micropico.pyIgnore": [
+    "**/.picowgo",
+    "**/.micropico",
+    "**/.vscode",
+    "**/.gitignore",
+    "**/.git",
+    "**/.DS_Store",
+    "**/project.pico-go",
+    "**/env",
+    "**/venv",
+    "**/.venv",
+    "**/.idea",
+    "**/*.sample",
+    "**/*.md"
+  ]
+}

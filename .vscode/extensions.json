@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.flake8",
+        "ms-python.autopep8",
+        "ms-python.isort",
+        "visualstudioexptteam.vscodeintellicode",
+        "paulober.pico-w-go"
+    ]
+}
