@@ -92,10 +92,11 @@ class Storage:
     def write_jobhist(self, data):
         with open(self.jobhist_file, "w") as f:
             for entry in data:
+                jobdesc = entry['job_description'].replace("\n", "<br>")
                 f.write(
                     f"{entry['job_no']},"
                     f"{entry['job_start_datetime']},"
                     f"{entry['job_end_datetime']},"
                     f"{entry['job_name']},"
-                    f"{entry['job_description'].replace(b'\n', b'<br>')}\n"
+                    f"{jobdesc}\n"
                 )
