@@ -15,11 +15,30 @@ class WebServer:
             "/api/jobhist": self.handle_api_jobhist
         }
 
+    # バッファを実際の長さまで読み込むヘルパー関数
+    async def read_exact(self, reader, total_length):
+        buf = b""
+        while len(buf) < total_length:
+            chunk = await reader.read(total_length - len(buf))
+            if not chunk:
+                break
+            buf += chunk
+        return buf
+
     async def handle_client(self, reader, writer):
         try:
             request = (await reader.read(1024)).decode()
             request_lines = request.split("\n")
-            method, path, _ = request_lines[0].split(" ")
+
+            try:
+                method, path, _ = request_lines[0].split(" ")
+            except ValueError:
+                await self.send_error(
+                    writer,
+                    "400 Bad Request",
+                    "Malformed request line"
+                )
+                return
 
             response = ""
             content_type = "text/html"
@@ -30,47 +49,93 @@ class WebServer:
                     response = await self.routes[path](method, None)
                     if path.startswith("/api/"):
                         content_type = "application/json"
+
                 elif method == "POST":
                     content_length = 0
                     for line in request_lines:
                         if line.lower().startswith("content-length:"):
-                            content_length = int(line.split(":")[1].strip())
-                    body = (await reader.read(content_length)).decode()
-                    response = await self.routes[path](
-                        method,
-                        ujson.loads(body)
-                    )
+                            try:
+                                content_length = int(
+                                    line.split(":")[1].strip())
+                            except ValueError:
+                                await self.send_error(
+                                    writer,
+                                    "400 Bad Request",
+                                    "Invalid Content-Length"
+                                )
+                                return
+
+                    raw_body = await self.read_exact(reader, content_length)
+                    try:
+                        body = raw_body.decode("utf-8")
+                    except UnicodeError as e:
+                        print("Unicode decode error:", e)
+                        print("raw_body:", raw_body)
+                        await self.send_error(
+                            writer,
+                            "400 Bad Request",
+                            "Invalid UTF-8"
+                        )
+                        return
+
+                    try:
+                        json_data = ujson.loads(body)
+                    except ValueError as e:
+                        print("JSON parse error:", e)
+                        await self.send_error(
+                            writer,
+                            "400 Bad Request",
+                            "Invalid JSON"
+                        )
+                        return
+
+                    response = await self.routes[path](method, json_data)
                     content_type = "application/json"
             else:
                 try:
-                    # 組み込みの open 関数で静的ファイル （HTML, CSS, JS） を読み込む
                     with open(f"www{path}", "r") as f:
                         response = f.read()
                         if path.endswith(".css"):
                             content_type = "text/css"
                         elif path.endswith(".js"):
                             content_type = "application/javascript"
-                except FileNotFoundError:
+                except OSError:
                     status = "404 Not Found"
                     response = "Not Found"
 
-            writer.write(
-                (
-                    f"HTTP/1.1 {status}\r\n"
-                    f"Content-Type: {content_type}\r\n"
-                    f"\r\n"
-                    f"{response}"
-                ).encode()
-            )
+            response_bytes = response.encode("utf-8")
+            header = (
+                f"HTTP/1.1 {status}\r\n"
+                f"Content-Type: {content_type}\r\n"
+                f"Content-Length: {len(response_bytes)}\r\n"
+                f"Connection: close\r\n"
+                f"\r\n"
+            ).encode("utf-8")
+            writer.write(header + response_bytes)
             await writer.drain()
+
         except OSError as e:
             if e.args[0] == 104:  # ECONNRESET
-                pass  # クライアントが接続をリセットした場合は無視
+                pass
             else:
-                raise  # 他のエラーは再スロー
+                raise
         finally:
             writer.close()
             await writer.wait_closed()
+
+    async def send_error(self, writer, status, message):
+        response = ujson.dumps({"status": "error", "message": message})
+        writer.write(
+            (
+                f"HTTP/1.1 {status}\r\n"
+                f"Content-Type: application/json\r\n"
+                f"\r\n"
+                f"{response}"
+            ).encode()
+        )
+        await writer.drain()
+        writer.close()
+        await writer.wait_closed()
 
     async def handle_index(self, method, data):
         user = self.storage.read_user()
@@ -128,8 +193,6 @@ class WebServer:
         )
 
     async def start(self):
-        # サーバーオブジェクトを _ に割り当て、未使用であることを明示
         _ = await asyncio.start_server(self.handle_client, "0.0.0.0", 80)
-        # サーバーを継続的に実行するためにイベントループを維持
         while True:
-            await asyncio.sleep(1)  # 無限ループでサーバーを稼働
+            await asyncio.sleep(1)
