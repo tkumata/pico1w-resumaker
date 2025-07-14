@@ -1,5 +1,5 @@
+
 import uos
-# import ujson
 
 
 class Storage:
@@ -15,8 +15,8 @@ class Storage:
 
     def read_user(self):
         try:
-            with open(self.user_file, "r") as f:
-                lines = f.read().strip().split("\n")
+            with open(self.user_file, "r") as file:
+                lines = file.read().strip().split("\n")
                 if not lines or lines[0] == "":
                     return {}
                 keys = [
@@ -29,18 +29,20 @@ class Storage:
             return {}
 
     def write_user(self, data):
-        with open(self.user_file, "w") as f:
-            values = [data.get(key, "") for key in [
-                "usr_name", "usr_birthday", "usr_addr", "usr_phone",
-                "usr_mobile", "usr_email", "usr_family", "usr_licenses",
-                "usr_siboudouki", "usr_access"
-            ]]
-            f.write(",".join(values))
+        with open(self.user_file, "w") as file:
+            values = [
+                data.get(key, "") for key in [
+                    "usr_name", "usr_birthday", "usr_addr", "usr_phone",
+                    "usr_mobile", "usr_email", "usr_family", "usr_licenses",
+                    "usr_siboudouki", "usr_access"
+                ]
+            ]
+            file.write(",".join(values))
 
     def read_simplehist(self):
         try:
-            with open(self.simplehist_file, "r") as f:
-                lines = f.read().strip().split("\n")
+            with open(self.simplehist_file, "r") as file:
+                lines = file.read().strip().split("\n")
                 result = []
                 for line in lines:
                     if line:
@@ -61,9 +63,9 @@ class Storage:
             return []
 
     def write_simplehist(self, data):
-        with open(self.simplehist_file, "w") as f:
+        with open(self.simplehist_file, "w") as file:
             for entry in data:
-                f.write(
+                file.write(
                     f"{entry['hist_no']},"
                     f"{entry['hist_datetime']},"
                     f"{entry['hist_status']},"
@@ -72,16 +74,14 @@ class Storage:
 
     def read_jobhist(self):
         try:
-            with open(self.jobhist_file, "r") as f:
-                lines = f.read().strip().split("\n")
+            with open(self.jobhist_file, "r") as file:
+                lines = file.read().strip().split("\n")
                 result = []
                 for line in lines:
                     if line:
-                        job_no, start, end, name, desc = line.split(",", 4)
+                        job_no, name, desc = line.split(",", 4)
                         result.append({
                             "job_no": int(job_no),
-                            "job_start_datetime": start,
-                            "job_end_datetime": end,
                             "job_name": name,
                             "job_description": desc
                         })
@@ -90,13 +90,11 @@ class Storage:
             return []
 
     def write_jobhist(self, data):
-        with open(self.jobhist_file, "w") as f:
+        with open(self.jobhist_file, "w") as file:
             for entry in data:
                 jobdesc = entry['job_description'].replace("\n", "<br>")
-                f.write(
+                file.write(
                     f"{entry['job_no']},"
-                    f"{entry['job_start_datetime']},"
-                    f"{entry['job_end_datetime']},"
                     f"{entry['job_name']},"
                     f"{jobdesc}\n"
                 )

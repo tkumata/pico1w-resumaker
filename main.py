@@ -11,9 +11,9 @@ ap.config(essid=secrets.SSID, password=secrets.PASSWORD)
 ap.active(True)
 
 # Wi-Fi STA setup
-# sta = network.WLAN(network.STA_IF)
-# sta.active(True)
-# sta.connect(secrets.STA_SSID, secrets.STA_PASSWORD)
+sta = network.WLAN(network.STA_IF)
+sta.active(True)
+sta.connect(secrets.STA_SSID, secrets.STA_PASSWORD)
 
 # SPI and OLED setup (assuming display.py exists)
 display.init_display()

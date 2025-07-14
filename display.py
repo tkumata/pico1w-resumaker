@@ -28,7 +28,7 @@ def init_display():
 
 def show_ap_info(ip):
     display.fill(0)
-    display.text("=== Resume ===", 0, 0, COLORS["MAGENTA"], size=1)
+    display.text("==== Resume ====", 0, 0, COLORS["RED"], size=1)
     display.text("SSID:", 0, 16, 0xFFFF, size=1)
     display.text("{}".format(secrets.SSID), 0, 32, COLORS["CYAN"], size=2)
     display.text("PASS:", 0, 56, 0xFFFF, size=1)
@@ -38,5 +38,5 @@ def show_ap_info(ip):
         size=2
     )
     display.text("IP:", 0, 96, 0xFFFF, size=1)
-    display.text(ip, 0, 114, COLORS["CYAN"], size=1)
+    display.text(ip, 0, 112, COLORS["CYAN"], size=1)
     display.show()

@@ -49,9 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               .map(
                 (j) => `
                 <li>
-                    ${j.job_start_datetime} - ${j.job_end_datetime}: ${
-                  j.job_name
-                }
+                    ${j.job_name} 
                     <p>${j.job_description.replace(/<br>/g, "<br>")}</p>
                 </li>
             `

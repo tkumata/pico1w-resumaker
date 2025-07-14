@@ -30,16 +30,10 @@ function renderJobhist() {
     .map(
       (entry, index) => `
         <div class="entry">
-            <label>開始日: <input type="date" value="${
-              entry.job_start_datetime || ""
-            }" onchange="updateJobhist(${index}, 'job_start_datetime', this.value)"></label>
-            <label>終了日: <input type="date" value="${
-              entry.job_end_datetime || ""
-            }" onchange="updateJobhist(${index}, 'job_end_datetime', this.value)"></label>
             <label>企業名: <input type="text" value="${
               entry.job_name || ""
             }" onchange="updateJobhist(${index}, 'job_name', this.value)"></label>
-            <label>説明: <textarea onchange="updateJobhist(${index}, 'job_description', this.value)">${
+            <label>業務内容: <textarea onchange="updateJobhist(${index}, 'job_description', this.value)">${
         entry.job_description || ""
       }</textarea></label>
             <button onclick="removeJobhist(${index})">削除</button>
@@ -58,8 +52,6 @@ function updateJobhist(index, key, value) {
 function addJobhist() {
   jobhistData.push({
     job_no: jobhistData.length + 1,
-    job_start_datetime: "",
-    job_end_datetime: "",
     job_name: "",
     job_description: "",
   });
