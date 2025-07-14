@@ -2,10 +2,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const userInfo = document.getElementById("user-info");
   const simplehistInfo = document.getElementById("simplehist-info");
   const jobhistInfo = document.getElementById("jobhist-info");
+  const portraitInfo = document.getElementById("portrait-info");
 
   const user = await (await fetch("/api/user")).json();
   const simplehist = await (await fetch("/api/simplehist")).json();
   const jobhist = await (await fetch("/api/jobhist")).json();
+  const portrait = await (await fetch("/api/portrait")).json();
 
   if (
     Object.keys(user).length === 0 &&
@@ -48,18 +50,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
 
   jobhistInfo.innerHTML = `
-        <h2>詳細職歴</h2>
-        <ul>
-            ${jobhist
-              .map(
-                (j) => `
-                <li>
-                    ${j.job_name} 
-                    <p>${j.job_description.replace(/<br>/g, "<br>")}</p>
-                </li>
+    <h2>詳細職歴</h2>
+    <ul>
+        ${jobhist
+          .map(
+            (j) => `
+              <li>
+                ${j.job_name} 
+                <p>${j.job_description.replace(/<br>/g, "<br>")}</p>
+              </li>
             `
-              )
-              .join("")}
-        </ul>
-    `;
+          )
+          .join("")}
+    </ul>
+  `;
+
+  portraitInfo.innerHTML = `
+    <h2>ポートレイト</h2>
+    <ul>
+      ${portrait
+        .map(
+          (p) => `
+            <li>
+                ${p.portrait_url} 
+                <p>${p.portrait_summary.replace(/<br>/g, "<br>")}</p>
+            </li>
+          `
+        )
+        .join("")}
+    </ul>
+  `;
 });

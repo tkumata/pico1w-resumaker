@@ -206,16 +206,32 @@ kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,
 3,2014-04-01,2025-01-31,株式会社zzz,これまでにやったこと。<br>- aaa<br>- bbb
 ```
 
+## `portrait.csv` (ポートレイト情報)
+
+| Column             | Format | Content           |
+| ------------------ | ------ | ----------------- |
+| `portrait_no`      | int    | sequential number |
+| `portrait_url`     | string | Portrait URL      |
+| `portrait_summary` | string | Portrait summary  |
+
+**例**:
+
+```csv
+1,https://github.com/youraccount/projectname1,blah blah blah
+2,https://github.com/youraccount/projectname2,blah blah blah
+```
+
 ## インターフェイス
 
 ### Web ルーティング
 
-| Method    | URI                 | Summary              |
-| --------- | ------------------- | -------------------- |
-| GET       | `/`                 | 履歴書トップページ   |
-| GET, POST | `/admin/user`       | ユーザ情報編集ページ |
-| GET, POST | `/admin/simplehist` | 学歴・職歴編集ページ |
-| GET, POST | `/admin/jobhist`    | 詳細職歴編集ページ   |
+| Method    | URI                 | Summary                |
+| --------- | ------------------- | ---------------------- |
+| GET       | `/`                 | 履歴書トップページ     |
+| GET, POST | `/admin/user`       | ユーザ情報編集ページ   |
+| GET, POST | `/admin/simplehist` | 学歴・職歴編集ページ   |
+| GET, POST | `/admin/jobhist`    | 詳細職歴編集ページ     |
+| GET, POST | `/admin/portait`    | ポートレイト編集ページ |
 
 - フロントエンドは JavaScript で構築し、モダンなデザインを採用。
 - 各編集ページ (`/admin/*`) は対応する CSV ファイルを編集可能。
@@ -271,6 +287,17 @@ kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,
 #### POST 時
 
 - parse して CSV ファイルに保存
+
+### ポートレイト編集画面 (`/admin/portrait`)
+
+#### GET 時
+
+- `portrait.csv` を読み込み、フォームの規定値として代入。
+- 保存ボタンで `/admin/portrait` へ JSON で POST (画面遷移なし)。
+- JavaScript で実装。
+- 複数行のフォームを動的に増減可能 (+/- ボタン)。
+
+#### POST 時
 
 ## AI が生成すべき
 

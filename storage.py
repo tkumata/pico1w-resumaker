@@ -8,6 +8,7 @@ class Storage:
         self.user_file = f"{self.data_dir}/user.csv"
         self.simplehist_file = f"{self.data_dir}/simplehist.csv"
         self.jobhist_file = f"{self.data_dir}/jobhist.csv"
+        self.portrait_file = f"{self.data_dir}/portrait.csv"
         try:
             uos.mkdir(self.data_dir)
         except OSError:
@@ -34,7 +35,7 @@ class Storage:
             values = [
                 data.get(key, "") for key in [
                     "usr_name", "usr_name_kana", "usr_gender", "usr_birthday",
-                    "usr_addr", "usr_phone",
+                    "usr_age", "usr_addr", "usr_phone",
                     "usr_mobile", "usr_email", "usr_family", "usr_licenses",
                     "usr_siboudouki", "usr_hobby", "usr_skill", "usr_access"
                 ]
@@ -99,4 +100,35 @@ class Storage:
                     f"{entry['job_no']},"
                     f"{entry['job_name']},"
                     f"{jobdesc}\n"
+                )
+
+    def read_portrait(self):
+        try:
+            with open(self.portrait_file, "r") as file:
+                lines = file.read().strip().split("\n")
+                result = []
+                for line in lines:
+                    if line:
+                        (
+                            portrait_no,
+                            portrait_url,
+                            portrait_summary
+                        ) = line.split(",", 4)
+                        result.append({
+                            "portrait_no": int(portrait_no),
+                            "portrait_url": portrait_url,
+                            "portrait_summary": portrait_summary
+                        })
+                return result
+        except OSError:
+            return []
+
+    def write_portrait(self, data):
+        with open(self.portrait_file, "w") as file:
+            for entry in data:
+                portsummary = entry['portrait_summary'].replace("\n", "<br>")
+                file.write(
+                    f"{entry['portrait_no']},"
+                    f"{entry['portrait_url']},"
+                    f"{portsummary}\n"
                 )
