@@ -10,9 +10,11 @@ class WebServer:
             "/admin/user": self.handle_user,
             "/admin/simplehist": self.handle_simplehist,
             "/admin/jobhist": self.handle_jobhist,
+            "/admin/portrait": self.handle_portrait,
             "/api/user": self.handle_api_user,
             "/api/simplehist": self.handle_api_simplehist,
             "/api/jobhist": self.handle_api_jobhist,
+            "/api/portrait": self.handle_api_portrait
         }
 
     async def start(self):
@@ -191,6 +193,14 @@ class WebServer:
             self.storage.write_jobhist
         )
 
+    async def handle_portrait(self, method, data):
+        return await self.html_post_handler(
+            method,
+            data,
+            "www/portrait.html",
+            self.storage.write_portrait
+        )
+
     async def html_post_handler(self, method, data, filepath, write_func):
         if method == "GET":
             return self.read_file(filepath)
@@ -206,6 +216,9 @@ class WebServer:
 
     async def handle_api_jobhist(self, method, data):
         return await self.api_get_handler(method, self.storage.read_jobhist)
+
+    async def handle_api_portrait(self, method, data):
+        return await self.api_get_handler(method, self.storage.read_portrait)
 
     async def api_get_handler(self, method, read_func):
         if method == "GET":
