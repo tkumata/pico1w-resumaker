@@ -20,9 +20,10 @@ class Storage:
                 if not lines or lines[0] == "":
                     return {}
                 keys = [
-                    "usr_name", "usr_birthday", "usr_addr", "usr_phone",
+                    "usr_name", "usr_name_kana", "usr_gender", "usr_birthday",
+                    "usr_age", "usr_addr", "usr_phone",
                     "usr_mobile", "usr_email", "usr_family", "usr_licenses",
-                    "usr_siboudouki", "usr_access"
+                    "usr_siboudouki", "usr_hobby", "usr_skill", "usr_access"
                 ]
                 return dict(zip(keys, lines[0].split(",")))
         except OSError:  # FileNotFoundError の代わりに OSError を使用
@@ -32,9 +33,10 @@ class Storage:
         with open(self.user_file, "w") as file:
             values = [
                 data.get(key, "") for key in [
-                    "usr_name", "usr_birthday", "usr_addr", "usr_phone",
+                    "usr_name", "usr_name_kana", "usr_gender", "usr_birthday",
+                    "usr_addr", "usr_phone",
                     "usr_mobile", "usr_email", "usr_family", "usr_licenses",
-                    "usr_siboudouki", "usr_access"
+                    "usr_siboudouki", "usr_hobby", "usr_skill", "usr_access"
                 ]
             ]
             file.write(",".join(values))

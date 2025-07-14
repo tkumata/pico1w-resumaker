@@ -19,7 +19,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   userInfo.innerHTML = `
         <h2>基本情報</h2>
         <p>名前: ${user.usr_name}</p>
+        <p>ふりがな: ${user.usr_name_kana}</p>
+        <p>性別: ${user.usr_gender === "1" ? "女" : "男"}</p>
         <p>生年月日: ${user.usr_birthday}</p>
+        <p>年齢: ${user.usr_age}</p>
         <p>住所: ${user.usr_addr}</p>
         <p>電話番号: ${user.usr_phone || "なし"}</p>
         <p>携帯電話番号: ${user.usr_mobile}</p>
@@ -27,6 +30,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         <p>扶養家族: ${user.usr_family === "1" ? "あり" : "なし"}</p>
         <p>免許・資格: ${user.usr_licenses.replace(/<br>/g, "<br>")}</p>
         <p>志望動機: ${user.usr_siboudouki.replace(/<br>/g, "<br>")}</p>
+        <p>趣味: ${user.usr_hobby.replace(/<br>/g, "<br>")}</p>
+        <p>特技: ${user.usr_skill.replace(/<br>/g, "<br>")}</p>
         <p>出社時間: ${user.usr_access}</p>
     `;
 
