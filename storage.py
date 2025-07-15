@@ -1,8 +1,19 @@
-
 import uos
 
 
 class Storage:
+    # ユーザー情報のキーを定数として定義
+    USER_KEYS = [
+        "usr_name", "usr_name_kana", "usr_gender", "usr_birthday",
+        "usr_age", "usr_addr", "usr_phone",
+        "usr_mobile", "usr_email", "usr_family", "usr_licenses",
+        "usr_siboudouki", "usr_hobby", "usr_skill", "usr_access"
+    ]
+
+    # 改行をBRタグに置換するキーのセット
+    KEYS_TO_REPLACE = {"usr_licenses",
+                       "usr_siboudouki", "usr_hobby", "usr_skill"}
+
     def __init__(self):
         self.data_dir = "/data"
         self.user_file = f"{self.data_dir}/user.csv"
@@ -20,25 +31,17 @@ class Storage:
                 lines = file.read().strip().split("\n")
                 if not lines or lines[0] == "":
                     return {}
-                keys = [
-                    "usr_name", "usr_name_kana", "usr_gender", "usr_birthday",
-                    "usr_age", "usr_addr", "usr_phone",
-                    "usr_mobile", "usr_email", "usr_family", "usr_licenses",
-                    "usr_siboudouki", "usr_hobby", "usr_skill", "usr_access"
-                ]
-                return dict(zip(keys, lines[0].split(",")))
+                return dict(zip(self.USER_KEYS, lines[0].split(",")))
         except OSError:  # FileNotFoundError の代わりに OSError を使用
             return {}
 
     def write_user(self, data):
         with open(self.user_file, "w") as file:
             values = [
-                data.get(key, "") for key in [
-                    "usr_name", "usr_name_kana", "usr_gender", "usr_birthday",
-                    "usr_age", "usr_addr", "usr_phone",
-                    "usr_mobile", "usr_email", "usr_family", "usr_licenses",
-                    "usr_siboudouki", "usr_hobby", "usr_skill", "usr_access"
-                ]
+                data.get(key, "").replace("\n", "<br>")
+                if key in self.KEYS_TO_REPLACE
+                else data.get(key, "")
+                for key in self.USER_KEYS
             ]
             file.write(",".join(values))
 
@@ -82,7 +85,7 @@ class Storage:
                 result = []
                 for line in lines:
                     if line:
-                        job_no, name, desc = line.split(",", 4)
+                        job_no, name, desc = line.split(",", 2)
                         result.append({
                             "job_no": int(job_no),
                             "job_name": name,
@@ -113,7 +116,7 @@ class Storage:
                             portrait_no,
                             portrait_url,
                             portrait_summary
-                        ) = line.split(",", 4)
+                        ) = line.split(",", 2)
                         result.append({
                             "portrait_no": int(portrait_no),
                             "portrait_url": portrait_url,
