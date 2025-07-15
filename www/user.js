@@ -13,10 +13,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   form.usr_mobile.value = user.usr_mobile || "";
   form.usr_email.value = user.usr_email || "";
   form.usr_family.value = user.usr_family || "1";
-  form.usr_licenses.value = user.usr_licenses || "";
-  form.usr_siboudouki.value = user.usr_siboudouki || "";
-  form.usr_hobby.value = user.usr_hobby || "";
-  form.usr_skill.value = user.usr_skill || "";
+  form.usr_licenses.value = user.usr_licenses.replace(/<br>/g, "\n") || "";
+  form.usr_siboudouki.value = user.usr_siboudouki.replace(/<br>/g, "\n") || "";
+  form.usr_hobby.value = user.usr_hobby.replace(/<br>/g, "\n") || "";
+  form.usr_skill.value = user.usr_skill.replace(/<br>/g, "\n") || "";
   form.usr_access.value = user.usr_access || "";
 
   form.addEventListener("submit", async (e) => {

@@ -29,16 +29,16 @@ function renderJobhist() {
   container.innerHTML = jobhistData
     .map(
       (entry, index) => `
-        <div class="entry">
-            <label>企業名: <input type="text" value="${
-              entry.job_name || ""
-            }" onchange="updateJobhist(${index}, 'job_name', this.value)"></label>
-            <label>業務内容: <textarea onchange="updateJobhist(${index}, 'job_description', this.value)">${
+      <div class="entry">
+          <label>企業名: <input type="text" value="${
+            entry.job_name || ""
+          }" onchange="updateJobhist(${index}, 'job_name', this.value)"></label>
+          <label>業務内容: <textarea onchange="updateJobhist(${index}, 'job_description', this.value)">${(
         entry.job_description || ""
-      }</textarea></label>
-            <button onclick="removeJobhist(${index})">削除</button>
-        </div>
-    `
+      ).replace(/<br>/g, "\n")}</textarea></label>
+          <button onclick="removeJobhist(${index})">削除</button>
+      </div>
+      `
     )
     .join("");
   console.log("Rendered jobhist form with", jobhistData.length, "entries");

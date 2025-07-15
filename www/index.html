@@ -9,15 +9,122 @@
   </head>
   <body>
     <div class="container">
-      <a href="/admin/user">プロフィール編集</a> |
-      <a href="/admin/simplehist">学歴・職歴編集</a> |
-      <a href="/admin/jobhist">詳細職歴編集</a> |
-      <a href="/admin/portrait">ポートレイト編集</a>
-      <h2>履歴書</h2>
+      <h1>履歴書</h1>
       <div id="user-info"></div>
       <div id="simplehist-info"></div>
       <div id="jobhist-info"></div>
       <div id="portrait-info"></div>
     </div>
+    <div class="admin">
+      <a href="/admin/user">プロフィール編集</a> |
+      <a href="/admin/simplehist">学歴・職歴編集</a> |
+      <a href="/admin/jobhist">職務経歴編集</a> |
+      <a href="/admin/portrait">ポートレイト編集</a>
+    </div>
   </body>
 </html>
+<script>
+  function isInAdminNetwork(ip) {
+    // IPアドレスを数値に変換
+    const ipToNum = (ip) => {
+      return ip
+        .split(".")
+        .reduce((acc, octet) => (acc << 8) + parseInt(octet), 0);
+    };
+
+    const targetIp = ipToNum(ip);
+    const networkBase = ipToNum("192.168.11.0");
+    const subnetMask = 0xffffff00;
+
+    return (targetIp & subnetMask) === networkBase;
+  }
+
+  // admin クラスの要素を表示/非表示にする関数
+  function toggleAdminElements(show) {
+    const adminElements = document.querySelectorAll(".admin");
+    adminElements.forEach((element) => {
+      element.style.display = show ? "block" : "none";
+    });
+  }
+
+  // 現在のページのホスト名/IPアドレスをチェック
+  function checkServerNetwork() {
+    const currentHost = window.location.hostname;
+
+    console.log("現在のホスト:", currentHost);
+
+    // IPアドレスの正規表現パターン
+    const ipPattern =
+      /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+    if (ipPattern.test(currentHost)) {
+      // 直接IPアドレスでアクセスしている場合
+      if (isInAdminNetwork(currentHost)) {
+        console.log("✓ 管理者ネットワークのサーバーにアクセス中");
+        toggleAdminElements(true);
+        return true;
+      } else {
+        console.log("✗ 管理者ネットワーク外のサーバーにアクセス中");
+        toggleAdminElements(false);
+        return false;
+      }
+    } else {
+      // ホスト名でアクセスしている場合
+      console.log("ホスト名でアクセス中:", currentHost);
+
+      // 特定のホスト名パターンをチェック（必要に応じて）
+      const adminHostPatterns = [/^192\.168\.11\.\d+$/];
+
+      const isAdminHost = adminHostPatterns.some((pattern) => {
+        if (pattern instanceof RegExp) {
+          return pattern.test(currentHost);
+        }
+        return currentHost === pattern;
+      });
+
+      if (isAdminHost) {
+        console.log("✓ 管理者ホスト名でアクセス中");
+        toggleAdminElements(true);
+        return true;
+      } else {
+        console.log("✗ 一般ホスト名でアクセス中");
+        toggleAdminElements(false);
+        return false;
+      }
+    }
+  }
+
+  // ページロード時に実行
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("サーバーネットワーク判定を開始...");
+
+    const isAdminAccess = checkServerNetwork();
+
+    // デバッグ情報の表示
+    const debugInfo = document.getElementById("debug-info");
+    if (debugInfo) {
+      debugInfo.innerHTML = `
+            <p>現在のホスト: ${window.location.hostname}</p>
+            <p>フルURL: ${window.location.href}</p>
+            <p>管理者アクセス: ${isAdminAccess ? "有効" : "無効"}</p>
+        `;
+    }
+
+    const notification = document.getElementById("admin-notification");
+    if (notification) {
+      if (isAdminAccess) {
+        notification.textContent = "管理者ネットワークからアクセス中";
+        notification.style.color = "green";
+        notification.style.display = "block";
+      } else {
+        notification.textContent = "一般ネットワークからアクセス中";
+        notification.style.color = "orange";
+        notification.style.display = "block";
+      }
+    }
+  });
+
+  function recheckServerNetwork() {
+    return checkServerNetwork();
+  }
+</script>

@@ -19,22 +19,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   userInfo.innerHTML = `
-        <h2>基本情報</h2>
-        <p>名前: ${user.usr_name}</p>
-        <p>ふりがな: ${user.usr_name_kana}</p>
-        <p>性別: ${user.usr_gender === "1" ? "女" : "男"}</p>
-        <p>生年月日: ${user.usr_birthday}</p>
-        <p>年齢: ${user.usr_age}</p>
-        <p>住所: ${user.usr_addr}</p>
-        <p>電話番号: ${user.usr_phone || "なし"}</p>
-        <p>携帯電話番号: ${user.usr_mobile}</p>
-        <p>メールアドレス: ${user.usr_email}</p>
-        <p>扶養家族: ${user.usr_family === "1" ? "あり" : "なし"}</p>
-        <p>免許・資格: ${user.usr_licenses.replace(/<br>/g, "<br>")}</p>
-        <p>志望動機: ${user.usr_siboudouki.replace(/<br>/g, "<br>")}</p>
-        <p>趣味: ${user.usr_hobby.replace(/<br>/g, "<br>")}</p>
-        <p>特技: ${user.usr_skill.replace(/<br>/g, "<br>")}</p>
-        <p>出社時間: ${user.usr_access}</p>
+        <div class="personal-block">
+          <p><label>名前</label>${user.usr_name}</p>
+          <p><label>ふりがな</label>${user.usr_name_kana}</p>
+          <p><label>性別</label>${user.usr_gender === "1" ? "女" : "男"}</p>
+          <p><label>生年月日</label>${user.usr_birthday}</p>
+          <p><label>年齢</label>${user.usr_age}</p>
+        </div>
+        <p><label>趣味</label>${user.usr_hobby.replace(/<br>/g, "<br>")}</p>
+        <p><label>特技</label>${user.usr_skill.replace(/<br>/g, "<br>")}</p>
+        <p><label>志望動機</label>${user.usr_siboudouki.replace(
+          /<br>/g,
+          "<br>"
+        )}</p>
+        <p><label>住所</label>${user.usr_addr}</p>
+        <div class="personal-block">
+          <p><label>電話番号</label>${user.usr_phone || "なし"}</p>
+          <p><label>携帯電話番号</label>${user.usr_mobile}</p>
+          <p><label>メールアドレス</label>${user.usr_email}</p>
+        </div>
+        <p><label>扶養家族</label>${
+          user.usr_family === "1" ? "あり" : "なし"
+        }</p>
+        <p><label>免許・資格</label>${user.usr_licenses.replace(
+          /<br>/g,
+          "<br>"
+        )}</p>
+        <p><label>通勤時間</label>${user.usr_access}</p>
     `;
 
   simplehistInfo.innerHTML = `
@@ -50,19 +61,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
 
   jobhistInfo.innerHTML = `
-    <h2>詳細職歴</h2>
-    <ul>
+    <h2>職務経歴</h2>
+    <p>
         ${jobhist
           .map(
             (j) => `
-              <li>
-                ${j.job_name} 
-                <p>${j.job_description.replace(/<br>/g, "<br>")}</p>
-              </li>
+              <h4>${j.job_name}</h4>
+              <p>${j.job_description.replace(/<br>/g, "<br>")}</p>
             `
           )
           .join("")}
-    </ul>
+    </p>
   `;
 
   portraitInfo.innerHTML = `
