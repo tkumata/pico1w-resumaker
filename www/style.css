@@ -1,7 +1,7 @@
 /* ベーススタイル */
 * {
   font-family: serif;
-  font-size: 12pt;
+  font-size: 13pt;
   line-height: 1.6;
 }
 
@@ -31,15 +31,6 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.personal-block {
-  display: flex;
-  gap: 20px;
-}
-
-.personal-info {
-  padding: 5px;
-}
-
 /* タイポグラフィ */
 h2,
 h3,
@@ -47,7 +38,8 @@ h4,
 h5,
 h6 {
   color: #ffffff;
-  background-color: #333333;
+  margin: auto;
+  padding: 0 5px;
 }
 h1 {
   font-size: 2rem;
@@ -57,22 +49,27 @@ h1 {
 h2 {
   font-size: 1.8rem;
   margin-bottom: 8px;
+  background-color: #666666;
 }
 h3 {
   font-size: 1.5rem;
   margin-bottom: 6px;
+  background-color: #999999;
 }
 h4 {
-  font-size: 1.4rem;
-  margin-bottom: 4px;
+  font-size: 1.3rem;
+  margin: 5px 0;
+  background-color: #999999;
 }
 h5 {
   font-size: 1.2rem;
   margin-bottom: 2px;
+  background-color: #999999;
 }
 h6 {
   font-size: 1rem;
   margin-bottom: 1px;
+  background-color: #999999;
 }
 
 /* フォーム */
@@ -114,14 +111,51 @@ button:hover {
   background-color: #0056b3;
 }
 
+p {
+  margin: 0;
+  padding: 5px 0;
+}
+
 /* ユーザー情報 */
 #user-info label {
-  margin: 20px 0 0;
-  padding: 5px;
+  padding: 0 5px;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #ffffff;
   background-color: #333333;
+}
+
+.personal-block {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-name {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #333333;
+}
+
+.user-image {
+  width: 200px;
+  height: 267px;
+  float: right;
+  margin: 0 20px 20px 20px;
+  border: 1px solid #ddd;
+}
+
+.user-image img {
+  max-width: 200px;
+  max-height: 267px;
+}
+
+.personal-info {
+  padding: 5px;
+}
+
+.clear {
+  clear: both;
 }
 
 /* エントリー */

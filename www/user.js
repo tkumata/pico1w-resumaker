@@ -46,3 +46,47 @@ document.addEventListener("DOMContentLoaded", async () => {
     alert("保存しました");
   });
 });
+
+/**
+ * 胸像写真のアップロードフロントエンド処理
+ */
+async function uploadImage() {
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
+  if (!file) {
+    alert("画像を選択してください");
+    return;
+  }
+
+  const chunkSize = 1024; // Pico W 向けに小さめ
+  const totalChunks = Math.ceil(file.size / chunkSize);
+  const filename = "tmp.jpg";
+
+  for (let i = 0; i < totalChunks; i++) {
+    const start = i * chunkSize;
+    const end = Math.min(file.size, start + chunkSize);
+    const chunk = file.slice(start, end);
+
+    const isFinal = i === totalChunks - 1;
+
+    const headers = new Headers();
+    headers.append("X-Filename", filename);
+    headers.append("X-Final", isFinal.toString());
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        headers,
+        body: chunk,
+      });
+
+      const result = await response.json();
+      console.log(`Chunk ${i + 1}/${totalChunks}:`, result);
+    } catch (error) {
+      console.error(`アップロード中にエラーが発生しました:`, error);
+      break;
+    }
+  }
+
+  alert("アップロード完了");
+}

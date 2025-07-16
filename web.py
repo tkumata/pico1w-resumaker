@@ -1,5 +1,6 @@
 import uasyncio as asyncio
 import ujson
+import os
 
 
 class WebServer:
@@ -14,7 +15,8 @@ class WebServer:
             "/api/user": self.handle_api_user,
             "/api/simplehist": self.handle_api_simplehist,
             "/api/jobhist": self.handle_api_jobhist,
-            "/api/portrait": self.handle_api_portrait
+            "/api/portrait": self.handle_api_portrait,
+            "/api/upload": self.handle_image_upload,
         }
 
     async def start(self):
@@ -46,15 +48,22 @@ class WebServer:
             body = None
             if method == "POST" and content_length > 0:
                 body_bytes = await self.read_exact(reader, content_length)
-                try:
-                    body = ujson.loads(body_bytes.decode("utf-8"))
-                except (UnicodeError, ValueError):
-                    await self.send_error(
-                        writer,
-                        "400 Bad Request",
-                        "JSONデコードエラー"
-                    )
-                    return
+
+                # Upload だけは JSON でなくバイナリとして処理
+                if path == "/api/upload":
+                    self.upload_headers = self.extract_custom_headers(
+                        headers[1:])
+                    body = body_bytes  # bytesのまま渡す
+                else:
+                    try:
+                        body = ujson.loads(body_bytes.decode("utf-8"))
+                    except (UnicodeError, ValueError):
+                        await self.send_error(
+                            writer,
+                            "400 Bad Request",
+                            "JSONデコードエラー"
+                        )
+                        return
 
             if path in self.routes:
                 handler = self.routes[path]
@@ -115,8 +124,19 @@ class WebServer:
             buf += chunk
         return buf
 
+    def extract_custom_headers(self, headers):
+        result = {}
+        for header in headers:
+            if ":" in header:
+                key, value = header.split(":", 1)
+                result[key.strip()] = value.strip()
+        return result
+
     async def send_response(self, writer, status, body, content_type):
-        encoded = body.encode() if isinstance(body, str) else body
+        if isinstance(body, bytes):
+            encoded = body
+        else:
+            encoded = body.encode() if isinstance(body, str) else body
         writer.write((
             f"HTTP/1.1 {status}\r\n"
             f"Content-Type: {content_type}\r\n"
@@ -141,13 +161,21 @@ class WebServer:
 
     async def serve_static_file(self, writer, path):
         try:
-            with open("www" + path, "r") as file:
-                content = file.read()
+            # バイナリファイルかどうかを判定
+            is_binary = path.endswith(('.jpg', '.jpeg'))
+            if is_binary:
+                with open("www" + path, "rb") as file:
+                    content = file.read()
+            else:
+                with open("www" + path, "r") as file:
+                    content = file.read()
             content_type = "text/html"
             if path.endswith(".css"):
                 content_type = "text/css"
             elif path.endswith(".js"):
                 content_type = "application/javascript"
+            elif path.endswith(".jpg"):
+                content_type = "image/jpeg"
             await self.send_response(writer, "200 OK", content, content_type)
         except OSError:
             await self.send_error(writer, "404 Not Found", "Not Found")
@@ -159,6 +187,39 @@ class WebServer:
     # ----------------------
     # Handlers
     # ----------------------
+
+    async def handle_image_upload(self, method, data):
+        if method != "POST":
+            return ujson.dumps({
+                "status": "error",
+                "message": "Method not allowed"
+            })
+
+        filename = self.upload_headers.get("X-Filename", "tmp.jpg")
+        # is_final = self.upload_headers.get("X-Final", "false") == "true"
+        content_length = int(self.upload_headers.get("Content-Length") or "0")
+
+        try:
+            with open("/www/" + filename, "ab") as f:
+                f.write(data)
+        except Exception as e:
+            return ujson.dumps({
+                "status": "error",
+                "message": "書き込みエラー: " + str(e)
+            })
+
+        # todo: chunk の最後をちゃんと判定する
+        if content_length < 1024:
+            os.rename("/www/tmp.jpg", "/www/image.jpg")
+            return ujson.dumps({
+                "status": "success",
+                "message": "Upload complete"
+            })
+
+        return ujson.dumps({
+            "status": "success",
+            "message": "Chunk received"
+        })
 
     async def handle_index(self, method, data):
         if not all((
