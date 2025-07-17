@@ -5,6 +5,7 @@ import os
 
 class WebServer:
     def __init__(self, storage):
+        self.upload_headers = {}
         self.storage = storage
         self.routes = {
             "/": self.handle_index,
@@ -110,7 +111,7 @@ class WebServer:
         for header in headers:
             if header.lower().startswith("content-length:"):
                 try:
-                    return int(header.split(":")[1].strip())
+                    return int(header.split(":", 1)[1].strip())
                 except ValueError:
                     return 0
         return 0
@@ -129,7 +130,7 @@ class WebServer:
         for header in headers:
             if ":" in header:
                 key, value = header.split(":", 1)
-                result[key.strip()] = value.strip()
+                result[key.strip().lower()] = value.strip()
         return result
 
     async def send_response(self, writer, status, body, content_type):
@@ -195,9 +196,9 @@ class WebServer:
                 "message": "Method not allowed"
             })
 
-        filename = self.upload_headers.get("X-Filename", "tmp.jpg")
-        # is_final = self.upload_headers.get("X-Final", "false") == "true"
-        content_length = int(self.upload_headers.get("Content-Length") or "0")
+        filename = self.upload_headers.get("x-filename", "tmp.jpg")
+        is_final = self.upload_headers.get(
+            "x-final", "false").lower() == "true"
 
         try:
             with open("/www/" + filename, "ab") as f:
@@ -208,9 +209,14 @@ class WebServer:
                 "message": "書き込みエラー: " + str(e)
             })
 
-        # todo: chunk の最後をちゃんと判定する
-        if content_length < 1024:
-            os.rename("/www/tmp.jpg", "/www/image.jpg")
+        if is_final:
+            try:
+                os.rename("/www/tmp.jpg", "/www/image.jpg")
+            except OSError as e:
+                return ujson.dumps({
+                    "status": "error",
+                    "message": "リネーム失敗: " + str(e)
+                })
             return ujson.dumps({
                 "status": "success",
                 "message": "Upload complete"

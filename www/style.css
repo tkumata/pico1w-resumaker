@@ -1,7 +1,7 @@
 /* ベーススタイル */
 * {
   font-family: serif;
-  font-size: 13pt;
+  font-size: 16px;
   line-height: 1.6;
 }
 
@@ -32,44 +32,46 @@ body {
 }
 
 /* タイポグラフィ */
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: #ffffff;
-  margin: auto;
-  padding: 0 5px;
-}
 h1 {
   font-size: 2rem;
   margin-bottom: 10px;
   color: #333333;
 }
+
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #f0f0f0;
+  padding: 0 5px;
+  background-color: #999999;
+}
+
 h2 {
   font-size: 1.8rem;
   margin-bottom: 8px;
   background-color: #666666;
 }
+
 h3 {
   font-size: 1.5rem;
   margin-bottom: 6px;
-  background-color: #999999;
 }
+
 h4 {
   font-size: 1.3rem;
   margin: 5px 0;
-  background-color: #999999;
 }
+
 h5 {
   font-size: 1.2rem;
   margin-bottom: 2px;
-  background-color: #999999;
 }
+
 h6 {
   font-size: 1rem;
   margin-bottom: 1px;
-  background-color: #999999;
 }
 
 /* フォーム */
