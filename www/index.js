@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         <p><label>名前</label><span class="user-name">${user.usr_name} (${
     user.usr_name_kana
   })</span></p>
-        <p><label>性別</label>${user.usr_gender === "1" ? "女" : "男"}</p>
         <p><label>住所</label>${user.usr_addr}</p>
         <div class="personal-block">
           <p><label>電話番号</label>${user.usr_phone || "なし"}</p>
@@ -35,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div class="personal-block">
           <p><label>生年月日</label>${user.usr_birthday}</p>
           <p><label>年齢</label>満${user.usr_age}歳</p>
+          <p><label>性別</label>${user.usr_gender === "1" ? "女" : "男"}</p>
           <p><label>扶養家族</label>${
             user.usr_family === "1" ? "あり" : "なし"
           }</p>
