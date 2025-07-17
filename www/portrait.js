@@ -30,15 +30,15 @@ function renderPortrait() {
     .map(
       (entry, index) => `
         <div class="entry">
-            <label>URL: <input type="text" value="${
-              entry.portrait_url || ""
-            }" onchange="updatePortrait(${index}, 'portrait_url', this.value)"></label>
-            <label>概要: <textarea onchange="updatePortrait(${index}, 'portrait_summary', this.value)">${
+          <label>URL: <input type="text" value="${
+            entry.portrait_url || ""
+          }" onchange="updatePortrait(${index}, 'portrait_url', this.value)"></label>
+          <label>概要: <textarea onchange="updatePortrait(${index}, 'portrait_summary', this.value)">${(
         entry.portrait_summary || ""
-      }</textarea></label>
-            <button onclick="removePortrait(${index})">削除</button>
+      ).replace(/<br>/g, "\n")}</textarea></label>
+          <button onclick="removePortrait(${index})">削除</button>
         </div>
-    `
+      `
     )
     .join("");
   console.log("Rendered portrait form with", portraitData.length, "entries");

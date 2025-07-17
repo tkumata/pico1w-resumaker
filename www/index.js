@@ -79,17 +79,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   portraitInfo.innerHTML = `
     <h2>ポートレイト</h2>
-    <ul>
-      ${portrait
-        .map(
-          (p) => `
-            <li>
-                ${p.portrait_url} 
-                <p>${p.portrait_summary.replace(/<br>/g, "<br>")}</p>
-            </li>
-          `
-        )
-        .join("")}
-    </ul>
+    ${portrait
+      .map(
+        (p) => `
+          <h5>${p.portrait_url}</h5>
+          <p>${p.portrait_summary.replace(/<br>/g, "<br>")}</p>
+        `
+      )
+      .join("")}
   `;
 });
