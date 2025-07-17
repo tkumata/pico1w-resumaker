@@ -145,11 +145,15 @@ p {
   float: right;
   margin: 0 20px 20px 20px;
   border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .user-image img {
   max-width: 200px;
   max-height: 267px;
+  width: 100%;
 }
 
 .personal-info {
