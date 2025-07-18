@@ -105,11 +105,20 @@ async function uploadImage() {
 }
 
 function reloadImage() {
-  const oldImg = document.getElementById("userImage");
-  const newImg = document.createElement("img");
-  newImg.id = "userImage";
-  newImg.src = "/image.jpg";
-  newImg.alt = "再読み込み画像";
+  const img = document.getElementById("userImage");
 
-  oldImg.parentNode.replaceChild(newImg, oldImg); // ← これがベスト
+  fetch("/image.jpg", { cache: "no-store" }) // ここも明示的に no-store
+    .then((res) => res.blob())
+    .then((blob) => {
+      const blobUrl = URL.createObjectURL(blob);
+      const newImg = document.createElement("img");
+      newImg.id = "userImage";
+      newImg.src = blobUrl;
+      newImg.onload = () => URL.revokeObjectURL(blobUrl);
+
+      img.parentNode.replaceChild(newImg, img);
+    })
+    .catch((err) => {
+      console.error("画像の再読み込み失敗:", err);
+    });
 }
