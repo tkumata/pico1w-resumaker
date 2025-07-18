@@ -9,8 +9,47 @@
   <body>
     <div class="container">
       <h1>ユーザ情報編集</h1>
-      <input type="file" id="fileInput" accept="image/jpg" />
-      <button onclick="uploadImage()">Upload</button>
+      <label
+        >履歴書画像:
+        <div style="padding: 10px">
+          <img
+            id="userImage"
+            class="reloadable"
+            src="/image.jpg"
+            alt="ユーザ画像"
+            style="width: 200px; height: auto"
+          />
+          <input
+            type="file"
+            id="fileInput"
+            accept=".jpg, .jpeg, image/jpg, image/jpeg"
+            style="display: none"
+          />
+          <div>
+            <button onclick="document.getElementById('fileInput').click()">
+              Select 🏞️
+            </button>
+            <button onclick="uploadImage()">Upload ⬆️</button>
+          </div>
+          <div
+            id="progressContainer"
+            style="
+              margin-top: 10px;
+              width: 100%;
+              max-width: 300px;
+              display: none;
+            "
+          >
+            <progress
+              id="uploadProgress"
+              value="0"
+              max="100"
+              style="width: 100%"
+            ></progress>
+            <span id="progressText">0%</span>
+          </div>
+        </div>
+      </label>
 
       <form id="user-form">
         <label>名前: <input type="text" name="usr_name" /></label>
