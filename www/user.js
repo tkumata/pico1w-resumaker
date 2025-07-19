@@ -58,7 +58,16 @@ async function uploadImage() {
     return;
   }
 
-  const chunkSize = 1024; // Pico W 向けに小さめ
+  const progressContainer = document.getElementById("progressContainer");
+  const progressBar = document.getElementById("uploadProgress");
+  const progressText = document.getElementById("progressText");
+
+  // プログレスバー表示・初期化
+  progressContainer.style.display = "block";
+  progressBar.value = 0;
+  progressText.textContent = "0%";
+
+  const chunkSize = 1024;
   const totalChunks = Math.ceil(file.size / chunkSize);
   const filename = "tmp.jpg";
 
@@ -66,7 +75,6 @@ async function uploadImage() {
     const start = i * chunkSize;
     const end = Math.min(file.size, start + chunkSize);
     const chunk = file.slice(start, end);
-
     const isFinal = i === totalChunks - 1;
 
     const headers = new Headers();
@@ -82,11 +90,35 @@ async function uploadImage() {
 
       const result = await response.json();
       console.log(`Chunk ${i + 1}/${totalChunks}:`, result);
+
+      const progress = Math.round(((i + 1) / totalChunks) * 100);
+      progressBar.value = progress;
+      progressText.textContent = `${progress}%`;
     } catch (error) {
-      console.error(`アップロード中にエラーが発生しました:`, error);
+      console.error("アップロード中にエラーが発生しました:", error);
       break;
     }
   }
 
-  alert("アップロード完了");
+  reloadImage();
+  progressText.textContent = "アップロード完了";
+}
+
+function reloadImage() {
+  const img = document.getElementById("userImage");
+
+  fetch("/image.jpg", { cache: "no-store" }) // ここも明示的に no-store
+    .then((res) => res.blob())
+    .then((blob) => {
+      const blobUrl = URL.createObjectURL(blob);
+      const newImg = document.createElement("img");
+      newImg.id = "userImage";
+      newImg.src = blobUrl;
+      newImg.onload = () => URL.revokeObjectURL(blobUrl);
+
+      img.parentNode.replaceChild(newImg, img);
+    })
+    .catch((err) => {
+      console.error("画像の再読み込み失敗:", err);
+    });
 }

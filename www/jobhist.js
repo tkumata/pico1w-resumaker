@@ -29,7 +29,7 @@ function renderJobhist() {
   container.innerHTML = jobhistData
     .map(
       (entry, index) => `
-      <div class="entry">
+        <div class="entry">
           <label>企業名: <input type="text" value="${
             entry.job_name || ""
           }" onchange="updateJobhist(${index}, 'job_name', this.value)"></label>
@@ -37,7 +37,7 @@ function renderJobhist() {
         entry.job_description || ""
       ).replace(/<br>/g, "\n")}</textarea></label>
           <button onclick="removeJobhist(${index})">削除</button>
-      </div>
+        </div>
       `
     )
     .join("");
