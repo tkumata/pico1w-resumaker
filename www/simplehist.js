@@ -30,29 +30,29 @@ function renderSimplehist() {
     .map(
       (entry, index) => `
         <div class="entry">
-            <label>日付: <input type="date" value="${
-              entry.hist_datetime || ""
-            }" onchange="updateSimplehist(${index}, 'hist_datetime', this.value)"></label>
-            <label>状態: <select onchange="updateSimplehist(${index}, 'hist_status', this.value)">
-                <option value="入学" ${
-                  entry.hist_status === "入学" ? "selected" : ""
-                }>入学</option>
-                <option value="卒業" ${
-                  entry.hist_status === "卒業" ? "selected" : ""
-                }>卒業</option>
-                <option value="入社" ${
-                  entry.hist_status === "入社" ? "selected" : ""
-                }>入社</option>
-                <option value="退社" ${
-                  entry.hist_status === "退社" ? "selected" : ""
-                }>退社</option>
-            </select></label>
-            <label>名称: <input type="text" value="${
-              entry.hist_name || ""
-            }" onchange="updateSimplehist(${index}, 'hist_name', this.value)"></label>
-            <button onclick="removeSimplehist(${index})">削除</button>
+          <label>日付: <input type="date" value="${
+            entry.hist_datetime || ""
+          }" onchange="updateSimplehist(${index}, 'hist_datetime', this.value)"></label>
+          <label>状態: <select onchange="updateSimplehist(${index}, 'hist_status', this.value)">
+            <option value="入学" ${
+              entry.hist_status === "入学" ? "selected" : ""
+            }>入学</option>
+            <option value="卒業" ${
+              entry.hist_status === "卒業" ? "selected" : ""
+            }>卒業</option>
+            <option value="入社" ${
+              entry.hist_status === "入社" ? "selected" : ""
+            }>入社</option>
+            <option value="退社" ${
+              entry.hist_status === "退社" ? "selected" : ""
+            }>退社</option></select>
+          </label>
+          <label>名称: <input type="text" value="${
+            entry.hist_name || ""
+          }" onchange="updateSimplehist(${index}, 'hist_name', this.value)"></label>
+          <button onclick="removeSimplehist(${index})">削除</button>
         </div>
-    `
+      `
     )
     .join("");
   console.log(
