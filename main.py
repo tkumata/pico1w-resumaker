@@ -35,9 +35,12 @@ async def main():
     ip = ap.ifconfig()[0]  # Get the IP address
     # display.show_ap_info(ip)
     # time.sleep(3)
+
+    # Show QR code with Wi-Fi credentials
     display.show_qr_code(ip, secrets.SSID, secrets.PASSWORD)
+
     await asyncio.gather(
-        # Start web server
+        # Start Web server
         web_server.start(),
         # Start DNS server
         # dns_server.start()

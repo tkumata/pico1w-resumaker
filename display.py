@@ -23,7 +23,7 @@ display = SSD1351(128, 128, spi, dc, cs, rst)
 
 
 def init_display():
-    display.fill(1)
+    display.fill(0)
     display.show()
 
 
@@ -57,4 +57,9 @@ def show_qr_code(ip, ssid, passwd):
                     x * scale, y * scale, scale, scale, COLORS["BLACK"]
                 )
     display.text("IP: {}".format(ip), 0, 120, COLORS["BLACK"], size=1)
+    display.show()
+
+
+def clear():
+    display.fill(0)
     display.show()

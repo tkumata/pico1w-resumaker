@@ -1,6 +1,7 @@
 import uasyncio as asyncio
 import ujson
 import os
+import gc
 
 
 class WebServer:
@@ -90,6 +91,7 @@ class WebServer:
                     await writer.wait_closed()
                 except Exception as e:
                     print("Error closing writer:", e)
+            gc.collect()
 
     async def parse_headers(self, reader):
         headers = []
@@ -162,6 +164,9 @@ class WebServer:
                 writer.write(encoded[i:i+chunk_size])
                 await writer.drain()
 
+            del encoded
+            gc.collect()
+
         except MemoryError:
             print("MemoryError while sending response")
 
@@ -187,6 +192,7 @@ class WebServer:
             else:
                 with open("www" + path, "r") as file:
                     content = file.read()
+
             content_type = "text/html"
             if path.endswith(".css"):
                 content_type = "text/css"
@@ -194,7 +200,10 @@ class WebServer:
                 content_type = "application/javascript"
             elif path.endswith(".jpg"):
                 content_type = "image/jpeg"
+
             await self.send_response(writer, "200 OK", content, content_type)
+            del content
+            gc.collect()
         except OSError:
             await self.send_error(writer, "404 Not Found", "Not Found")
 
@@ -228,15 +237,15 @@ class WebServer:
         if is_final:
             try:
                 os.rename("/www/tmp.jpg", "/www/image.jpg")
+                return ujson.dumps({
+                    "status": "success",
+                    "message": "Upload complete"
+                })
             except OSError as e:
                 return ujson.dumps({
                     "status": "error",
                     "message": "リネーム失敗: " + str(e)
                 })
-            return ujson.dumps({
-                "status": "success",
-                "message": "Upload complete"
-            })
 
         return ujson.dumps({
             "status": "success",
