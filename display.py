@@ -1,5 +1,6 @@
 from machine import Pin, SPI
 from lib.ssd1351 import SSD1351
+from lib.uQR import QRCode
 import secrets
 
 COLORS = {
@@ -22,7 +23,7 @@ display = SSD1351(128, 128, spi, dc, cs, rst)
 
 
 def init_display():
-    display.fill(0)
+    display.fill(1)
     display.show()
 
 
@@ -39,4 +40,21 @@ def show_ap_info(ip):
     )
     display.text("IP:", 0, 96, 0xFFFF, size=1)
     display.text(ip, 0, 112, COLORS["CYAN"], size=1)
+    display.show()
+
+
+def show_qr_code(ip, ssid, passwd):
+    display.fill(COLORS["WHITE"])
+    qr = QRCode(version=3)
+    qr.add_data(
+        "WIFI:S:{};T:WPA;P:{};;URL:http://{}".format(ssid, passwd, ip), 0)
+    matrix = qr.get_matrix()
+    scale = 3
+    for y in range(len(matrix)):  # type: ignore
+        for x in range(len(matrix[0])):  # type: ignore
+            if matrix[y][x]:  # type: ignore
+                display.fill_rect(
+                    x * scale, y * scale, scale, scale, COLORS["BLACK"]
+                )
+    display.text("IP: {}".format(ip), 0, 120, COLORS["BLACK"], size=1)
     display.show()

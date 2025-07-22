@@ -85,8 +85,11 @@ class WebServer:
         except Exception as exc:
             print("handle_client error:", exc)
         finally:
-            writer.close()
-            await writer.wait_closed()
+            if writer:
+                try:
+                    await writer.wait_closed()
+                except Exception as e:
+                    print("Error closing writer:", e)
 
     async def parse_headers(self, reader):
         headers = []
@@ -134,19 +137,33 @@ class WebServer:
         return result
 
     async def send_response(self, writer, status, body, content_type):
-        if isinstance(body, bytes):
-            encoded = body
-        else:
-            encoded = body.encode() if isinstance(body, str) else body
-        writer.write((
-            f"HTTP/1.1 {status}\r\n"
-            f"Content-Type: {content_type}\r\n"
-            f"Content-Length: {len(encoded)}\r\n"
-            f"Connection: close\r\n"
-            f"\r\n"
-        ).encode())
-        writer.write(encoded)
-        await writer.drain()
+        try:
+            if isinstance(body, bytes):
+                encoded = body
+            elif isinstance(body, str):
+                encoded = body.encode()
+            else:
+                encoded = body  # 既にエンコード済み想定
+
+            header = (
+                f"HTTP/1.1 {status}\r\n"
+                f"Content-Type: {content_type}\r\n"
+                f"Content-Length: {len(encoded)}\r\n"
+                f"Connection: close\r\n"
+                f"\r\n"
+            ).encode()
+
+            writer.write(header)
+            await writer.drain()
+
+            # 本文は分割送信
+            chunk_size = 512
+            for i in range(0, len(encoded), chunk_size):
+                writer.write(encoded[i:i+chunk_size])
+                await writer.drain()
+
+        except MemoryError:
+            print("MemoryError while sending response")
 
     async def send_error(self, writer, status, message):
         response = ujson.dumps({
@@ -188,7 +205,6 @@ class WebServer:
     # ----------------------
     # Handlers
     # ----------------------
-
     async def handle_image_upload(self, method, data):
         if method != "POST":
             return ujson.dumps({

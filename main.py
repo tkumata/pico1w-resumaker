@@ -1,9 +1,11 @@
 import network
 import uasyncio as asyncio
 from web import WebServer
+# from dns import DNSServer
 from storage import Storage
 import secrets
 import display
+# import time
 
 # Wi-Fi AP setup
 ap = network.WLAN(network.AP_IF)
@@ -24,13 +26,22 @@ storage = Storage()
 # Initialize web server
 web_server = WebServer(storage)
 
+# Initialize dns server
+# dns_server = DNSServer(ip="192.168.4.1")
+
 
 async def main():
     # Display Wi-Fi info on OLED (assuming display.py handles this)
     ip = ap.ifconfig()[0]  # Get the IP address
-    display.show_ap_info(ip)
-    # Start web server
-    await web_server.start()
+    # display.show_ap_info(ip)
+    # time.sleep(3)
+    display.show_qr_code(ip, secrets.SSID, secrets.PASSWORD)
+    await asyncio.gather(
+        # Start web server
+        web_server.start(),
+        # Start DNS server
+        # dns_server.start()
+    )
 
 # Run async main
 asyncio.run(main())
