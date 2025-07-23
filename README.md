@@ -6,7 +6,7 @@ Raspberry Pi Pico WH によるポータブル履歴書
 
 ## 用意するハードウェア
 
-- [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) ≠ Pico2 WH
+- [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) (≠ Pico2 WH)
 - [OLED SSD1351](https://www.waveshare.com/product/displays/lcd-oled/lcd-oled-3/1.5inch-rgb-oled-module.htm)
 
 ## 用意するソフトウェア
@@ -20,6 +20,10 @@ Raspberry Pi Pico WH によるポータブル履歴書
 ### 初期化
 
 一回やればいいです。
+
+1. Open VSCode
+2. Click left pane
+3. Select `Initialize MicroPico project`
 
 ### ソフトウェア準備
 
@@ -64,7 +68,7 @@ secrets.py の説明
 
 1. Pico WH を母艦 PC に接続
 2. VSCode 左ペインを右クリック
-3. Upload project to Pico を選択
+3. `Upload project to Pico` を選択
 
 ### 起動
 
@@ -75,7 +79,7 @@ secrets.py の説明
 
 ### 管理画面
 
-1. OLED に映った SSID に接続
+1. OLED に映った QR コードをスキャン
 2. ブラウザで以下にアクセス
 
 - http://192.168.4.1/admin/user
@@ -85,10 +89,10 @@ secrets.py の説明
 
 ### 履歴書表示
 
-1. OLED に映った SSID に接続
+1. OLED に映った QR コードをスキャン
 2. http://192.168.4.1 に接続
 
 ## TTY
 
 - M4 MacBook Air + macOS Sequoia: /dev/tty.usbmodem113201
-- Rock5B + Armbian 25.05: /dev/ttyACM0
+- Rock5B + Armbian 25.5.1: /dev/ttyACM0
