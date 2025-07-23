@@ -95,7 +95,7 @@ class WebServer:
                 except Exception as e:
                     print("Error closing writer:", e)
             gc.collect()
-            print("Client final allocated:", gc.mem_alloc() / 1024, "KB")
+            # print("Client final allocated:", gc.mem_alloc() / 1024, "KB")
 
     async def parse_headers(self, reader):
         headers = []

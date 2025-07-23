@@ -1,6 +1,6 @@
 {
   "python.languageServer": "Pylance",
-  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.typeCheckingMode": "standard",
   "python.analysis.diagnosticSeverityOverrides": {
     "reportMissingModuleSource": "none"
   },
@@ -8,8 +8,6 @@
   "python.analysis.typeshedPaths": ["~/.micropico-stubs/included"],
   "python.analysis.extraPaths": ["~/.micropico-stubs/included"],
   "micropico.openOnStart": true,
-  "micropico.manualComDevice": "/dev/tty.usbmodem113201",
-  "micropico.autoConnect": false,
   "micropico.pyIgnore": [
     "**/.picowgo",
     "**/.micropico",
@@ -25,5 +23,6 @@
     "**/*.sample",
     "**/*.bak",
     "**/*.md"
-  ]
+  ],
+  "micropico.manualComDevice": "/dev/tty.usbmodem113201"
 }

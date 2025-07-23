@@ -5,7 +5,6 @@ from web import WebServer
 from storage import Storage
 import secrets
 import display
-# import time
 
 # Wi-Fi AP setup
 ap = network.WLAN(network.AP_IF)
@@ -34,7 +33,6 @@ async def main():
     # Display Wi-Fi info on OLED (assuming display.py handles this)
     ip = ap.ifconfig()[0]  # Get the IP address
     # display.show_ap_info(ip)
-    # time.sleep(3)
 
     # Show QR code with Wi-Fi credentials
     display.show_qr_code(ip, secrets.SSID, secrets.PASSWORD)

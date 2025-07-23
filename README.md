@@ -6,7 +6,7 @@ Raspberry Pi Pico WH によるポータブル履歴書
 
 ## 用意するハードウェア
 
-- [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) ≠ Pico2 WH
+- [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) (≠ Pico2 WH)
 - [OLED SSD1351](https://www.waveshare.com/product/displays/lcd-oled/lcd-oled-3/1.5inch-rgb-oled-module.htm)
 
 ## 用意するソフトウェア
@@ -20,6 +20,10 @@ Raspberry Pi Pico WH によるポータブル履歴書
 ### 初期化
 
 一回やればいいです。
+
+1. Open VSCode
+2. Click left pane
+3. Select `Initialize MicroPico project`
 
 ### ソフトウェア準備
 
