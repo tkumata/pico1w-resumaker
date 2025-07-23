@@ -64,7 +64,7 @@ secrets.py の説明
 
 1. Pico WH を母艦 PC に接続
 2. VSCode 左ペインを右クリック
-3. Upload project to Pico を選択
+3. `Upload project to Pico` を選択
 
 ### 起動
 
@@ -75,7 +75,7 @@ secrets.py の説明
 
 ### 管理画面
 
-1. OLED に映った SSID に接続
+1. OLED に映った QR コードをスキャン
 2. ブラウザで以下にアクセス
 
 - http://192.168.4.1/admin/user
@@ -85,10 +85,10 @@ secrets.py の説明
 
 ### 履歴書表示
 
-1. OLED に映った SSID に接続
+1. OLED に映った QR コードをスキャン
 2. http://192.168.4.1 に接続
 
 ## TTY
 
 - M4 MacBook Air + macOS Sequoia: /dev/tty.usbmodem113201
-- Rock5B + Armbian 25.05: /dev/ttyACM0
+- Rock5B + Armbian 25.5.1: /dev/ttyACM0

@@ -1,6 +1,7 @@
 import socket
 import uselect
 import uasyncio as asyncio
+import gc
 
 
 class DNSServer:
@@ -55,5 +56,7 @@ class DNSServer:
 
         try:
             self.sock.sendto(response, addr)
+            gc.collect()
+            print("DNS final allocated:", gc.mem_alloc() / 1024, "KB")
         except Exception as e:
             print("send error:", e)

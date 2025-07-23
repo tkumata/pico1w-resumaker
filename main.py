@@ -27,7 +27,7 @@ storage = Storage()
 web_server = WebServer(storage)
 
 # Initialize dns server
-# dns_server = DNSServer(ip="192.168.4.1")
+# dns_server = DNSServer(ip=ap.ifconfig()[0])
 
 
 async def main():

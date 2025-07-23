@@ -10,6 +10,7 @@ class WebServer:
         self.storage = storage
         self.routes = {
             "/": self.handle_index,
+            "/hotspot-detect.html": self.handle_hotspot_detect,
             "/admin/user": self.handle_user,
             "/admin/simplehist": self.handle_simplehist,
             "/admin/jobhist": self.handle_jobhist,
@@ -83,6 +84,8 @@ class WebServer:
             else:
                 await self.serve_static_file(writer, path)
 
+        except MemoryError as e:
+            print("handle_client:", e)
         except Exception as exc:
             print("handle_client error:", exc)
         finally:
@@ -92,6 +95,7 @@ class WebServer:
                 except Exception as e:
                     print("Error closing writer:", e)
             gc.collect()
+            print("Client final allocated:", gc.mem_alloc() / 1024, "KB")
 
     async def parse_headers(self, reader):
         headers = []
@@ -164,9 +168,6 @@ class WebServer:
                 writer.write(encoded[i:i+chunk_size])
                 await writer.drain()
 
-            del encoded
-            gc.collect()
-
         except MemoryError:
             print("MemoryError while sending response")
 
@@ -202,8 +203,6 @@ class WebServer:
                 content_type = "image/jpeg"
 
             await self.send_response(writer, "200 OK", content, content_type)
-            del content
-            gc.collect()
         except OSError:
             await self.send_error(writer, "404 Not Found", "Not Found")
 
@@ -260,6 +259,9 @@ class WebServer:
         )):
             return "Some csv are empty."
         return self.read_file("www/index.html")
+
+    async def handle_hotspot_detect(self, method, data):
+        return self.read_file("www/hotspot-detect.html")
 
     async def handle_user(self, method, data):
         return await self.html_post_handler(
