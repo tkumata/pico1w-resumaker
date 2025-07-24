@@ -2,10 +2,12 @@ import uasyncio as asyncio
 import ujson
 import os
 import gc
+import display
 
 
 class WebServer:
     def __init__(self, storage):
+        gc.threshold(1024 * 8)
         self.upload_headers = {}
         self.storage = storage
         self.routes = {
@@ -24,6 +26,8 @@ class WebServer:
 
     async def start(self):
         _ = await asyncio.start_server(self.handle_client, "0.0.0.0", 80)
+        display.text("■", 0, 0, 0x07E0, size=1)
+
         while True:
             await asyncio.sleep(1)
 
@@ -85,7 +89,7 @@ class WebServer:
                 await self.serve_static_file(writer, path)
 
         except MemoryError as e:
-            print("handle_client:", e)
+            print("handle_client memory error:", e)
         except Exception as exc:
             print("handle_client error:", exc)
         finally:
@@ -94,8 +98,6 @@ class WebServer:
                     await writer.wait_closed()
                 except Exception as e:
                     print("Error closing writer:", e)
-            gc.collect()
-            # print("Client final allocated:", gc.mem_alloc() / 1024, "KB")
 
     async def parse_headers(self, reader):
         headers = []

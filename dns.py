@@ -6,6 +6,7 @@ import gc
 
 class DNSServer:
     def __init__(self, ip="192.168.4.1", port=53):
+        gc.threshold(1024 * 8)
         self.ip = ip
         self.port = port
 
@@ -13,7 +14,6 @@ class DNSServer:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setblocking(False)
         self.sock.bind(("0.0.0.0", self.port))
-        print("[DNS] Listening on port", self.port)
 
         poller = uselect.poll()
         poller.register(self.sock, uselect.POLLIN)
@@ -56,7 +56,5 @@ class DNSServer:
 
         try:
             self.sock.sendto(response, addr)
-            gc.collect()
-            print("DNS final allocated:", gc.mem_alloc() / 1024, "KB")
         except Exception as e:
             print("send error:", e)

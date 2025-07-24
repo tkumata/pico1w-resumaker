@@ -1,3 +1,4 @@
+import gc
 import network
 import uasyncio as asyncio
 from web import WebServer
@@ -40,9 +41,19 @@ async def main():
     await asyncio.gather(
         # Start Web server
         web_server.start(),
+
         # Start DNS server
-        # dns_server.start()
+        # dns_server.start(),
     )
 
 # Run async main
-asyncio.run(main())
+if __name__ == "__main__":
+    try:
+        gc.threshold(1024 * 8)
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Shutting down...")
+    except Exception as e:
+        print("Fatal error:", e)
+    finally:
+        display.clear()
