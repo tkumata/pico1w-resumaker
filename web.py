@@ -134,8 +134,10 @@ class WebServer:
         await writer.drain()
 
     async def send_error(self, writer, status, message):
-        response = ujson.dumps(
-            {"status": "error", "message": message}).encode()
+        response = ujson.dumps({
+            "status": "error",
+            "message": message
+        }).encode()
         await self.send_response_header(writer, status, "application/json")
         await self.send_chunked(writer, response)
 
@@ -220,9 +222,10 @@ class WebServer:
         if method != "POST":
             return await self.send_chunked(
                 writer,
-                ujson.dumps(
-                    {"status": "error", "message": "Method not allowed"}
-                ).encode()
+                ujson.dumps({
+                    "status": "error",
+                    "message": "Method not allowed"
+                }).encode()
             )
 
         filename = self.upload_headers.get("x-filename", "tmp.jpg")
@@ -235,9 +238,10 @@ class WebServer:
         except Exception as e:
             return await self.send_chunked(
                 writer,
-                ujson.dumps(
-                    {"status": "error", "message": "Write Error: " + str(e)}
-                ).encode()
+                ujson.dumps({
+                    "status": "error",
+                    "message": "Write Error: " + str(e)
+                }).encode()
             )
 
         if is_final:
@@ -245,17 +249,18 @@ class WebServer:
                 os.rename("/www/tmp.jpg", "/www/image.jpg")
                 return await self.send_chunked(
                     writer,
-                    ujson.dumps(
-                        {"status": "success", "message": "Upload complete"}
-                    ).encode()
+                    ujson.dumps({
+                        "status": "success",
+                        "message": "Upload complete"
+                    }).encode()
                 )
             except OSError as e:
                 return await self.send_chunked(
                     writer,
-                    ujson.dumps(
-                        {"status": "error",
-                            "message": "Failure Rename: " + str(e)}
-                    ).encode()
+                    ujson.dumps({
+                        "status": "error",
+                        "message": "Failure Rename: " + str(e)
+                    }).encode()
                 )
 
         return await self.send_chunked(writer, ujson.dumps({"status": "success", "message": "Chunk received"}).encode())
@@ -292,9 +297,10 @@ class WebServer:
             return await self.send_chunked(writer, ujson.dumps(read_func()).encode())
         return await self.send_chunked(
             writer,
-            ujson.dumps(
-                {"status": "error", "message": "Method not allowed"}
-            ).encode()
+            ujson.dumps({
+                "status": "error",
+                "message": "Method not allowed"
+            }).encode()
         )
 
     async def handle_api_user(self, method, data, writer):
