@@ -6,21 +6,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const user = await (await fetch("/api/user")).json();
   const simplehist = await (await fetch("/api/simplehist")).json();
-  const jobhist = await (await fetch("/api/jobhist")).json();
-  const portrait = await (await fetch("/api/portrait")).json();
 
-  if (
-    Object.keys(user).length === 0 &&
-    simplehist.length === 0 &&
-    jobhist.length === 0
-  ) {
+  if (Object.keys(user).length === 0 && simplehist.length === 0) {
     userInfo.innerHTML = "<p>データなし</p>";
     return;
   }
 
   userInfo.innerHTML = `
     <div class="user-image">
-      <img src="/image.jpg" alt="User">
+      <img src="/image.jpg" alt="User" loading="lazy">
     </div>
     <p><label>名前</label><span class="user-name">${user.usr_name} (${
     user.usr_name_kana
@@ -62,6 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     </ul>
   `;
 
+  const jobhist = await (await fetch("/api/jobhist")).json();
   jobhistInfo.innerHTML = `
     <h2>職務経歴</h2>
     ${jobhist
@@ -74,6 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       .join("")}
   `;
 
+  const portrait = await (await fetch("/api/portrait")).json();
   portraitInfo.innerHTML = `
     <h2>ポートレイト</h2>
     ${portrait
@@ -88,7 +84,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function isInAdminNetwork(ip) {
-  // IPアドレスを数値に変換
   const ipToNum = (ip) => {
     return ip
       .split(".")
@@ -110,32 +105,20 @@ function toggleAdminElements(show) {
   });
 }
 
-// 現在のページのホスト名/IPアドレスをチェック
 function checkServerNetwork() {
   const currentHost = window.location.hostname;
-
-  console.log("現在のホスト:", currentHost);
-
-  // IPアドレスの正規表現パターン
   const ipPattern =
     /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
   if (ipPattern.test(currentHost)) {
-    // 直接IPアドレスでアクセスしている場合
     if (isInAdminNetwork(currentHost)) {
-      console.log("✓ 管理者ネットワークのサーバーにアクセス中");
       toggleAdminElements(true);
       return true;
     } else {
-      console.log("✗ 管理者ネットワーク外のサーバーにアクセス中");
       toggleAdminElements(false);
       return false;
     }
   } else {
-    // ホスト名でアクセスしている場合
-    console.log("ホスト名でアクセス中:", currentHost);
-
-    // 特定のホスト名パターンをチェック（必要に応じて）
     const adminHostPatterns = [/^192\.168\.11\.\d+$/];
 
     const isAdminHost = adminHostPatterns.some((pattern) => {
@@ -146,11 +129,9 @@ function checkServerNetwork() {
     });
 
     if (isAdminHost) {
-      console.log("✓ 管理者ホスト名でアクセス中");
       toggleAdminElements(true);
       return true;
     } else {
-      console.log("✗ 一般ホスト名でアクセス中");
       toggleAdminElements(false);
       return false;
     }
@@ -159,32 +140,8 @@ function checkServerNetwork() {
 
 // ページロード時に実行
 document.addEventListener("DOMContentLoaded", function () {
-  console.log("サーバーネットワーク判定を開始...");
-
   const isAdminAccess = checkServerNetwork();
-
-  // デバッグ情報の表示
-  const debugInfo = document.getElementById("debug-info");
-  if (debugInfo) {
-    debugInfo.innerHTML = `
-      <p>現在のホスト: ${window.location.hostname}</p>
-      <p>フルURL: ${window.location.href}</p>
-      <p>管理者アクセス: ${isAdminAccess ? "有効" : "無効"}</p>
-    `;
-  }
-
   const notification = document.getElementById("admin-notification");
-  if (notification) {
-    if (isAdminAccess) {
-      notification.textContent = "管理者ネットワークからアクセス中";
-      notification.style.color = "green";
-      notification.style.display = "block";
-    } else {
-      notification.textContent = "一般ネットワークからアクセス中";
-      notification.style.color = "orange";
-      notification.style.display = "block";
-    }
-  }
 });
 
 function recheckServerNetwork() {

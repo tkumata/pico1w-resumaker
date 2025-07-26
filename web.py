@@ -1,6 +1,7 @@
 import uasyncio as asyncio
 import ujson
 import os
+import display
 import gc
 
 
@@ -24,11 +25,14 @@ class WebServer:
 
     async def start(self):
         _ = await asyncio.start_server(self.handle_client, "0.0.0.0", 80)
+        display.text("■", 0, 0, 0x07E0, size=1)
+
         while True:
             await asyncio.sleep(1)
 
     async def handle_client(self, reader, writer):
         try:
+            gc.collect()
             headers = await self.parse_headers(reader)
             if headers is None:
                 await self.send_error(
@@ -68,7 +72,9 @@ class WebServer:
                         )
                         return
 
-            if path in self.routes:
+            if  method == "GET" and path in self.routes and path.startswith("/admin"):
+                await self.serve_admin_static(writer, path)
+            elif path in self.routes:
                 handler = self.routes[path]
                 response = await handler(method, body)
                 content_type = (
@@ -85,7 +91,7 @@ class WebServer:
                 await self.serve_static_file(writer, path)
 
         except MemoryError as e:
-            print("handle_client:", e)
+            print("handle_client memory error:", e)
         except Exception as exc:
             print("handle_client error:", exc)
         finally:
@@ -94,8 +100,6 @@ class WebServer:
                     await writer.wait_closed()
                 except Exception as e:
                     print("Error closing writer:", e)
-            gc.collect()
-            # print("Client final allocated:", gc.mem_alloc() / 1024, "KB")
 
     async def parse_headers(self, reader):
         headers = []
@@ -161,12 +165,14 @@ class WebServer:
 
             writer.write(header)
             await writer.drain()
+            del header
 
             # 本文は分割送信
             chunk_size = 512
             for i in range(0, len(encoded), chunk_size):
                 writer.write(encoded[i:i+chunk_size])
                 await writer.drain()
+            del encoded
 
         except MemoryError:
             print("MemoryError while sending response")
@@ -185,14 +191,7 @@ class WebServer:
 
     async def serve_static_file(self, writer, path):
         try:
-            # バイナリファイルかどうかを判定
-            is_binary = path.endswith(('.jpg', '.jpeg'))
-            if is_binary:
-                with open("www" + path, "rb") as file:
-                    content = file.read()
-            else:
-                with open("www" + path, "r") as file:
-                    content = file.read()
+            stat = os.stat('www' + path)
 
             content_type = "text/html"
             if path.endswith(".css"):
@@ -202,13 +201,88 @@ class WebServer:
             elif path.endswith(".jpg"):
                 content_type = "image/jpeg"
 
-            await self.send_response(writer, "200 OK", content, content_type)
+            header = (
+                f"HTTP/1.1 200 OK\r\n"
+                f"Content-Type: {content_type}\r\n"
+                f"Content-Length: {stat[6]}\r\n"
+                f"Connection: close\r\n"
+                f"\r\n"
+            ).encode()
+
+            writer.write(header)
+            await writer.drain()
+            del header
+
+            # 本文は分割送信
+            is_binary = path.endswith(('.jpg', '.jpeg'))
+            if is_binary:
+                with open("www" + path, "rb") as file:
+                    while True:
+                        chunk = file.read(512)
+                        if not chunk:
+                            break
+                        writer.write(chunk)
+                        await writer.drain()
+                    del chunk
+            else:
+                with open("www" + path, "r") as file:
+                    while True:
+                        line = file.readline()
+                        if not line:
+                            break
+                        writer.write(line.encode('utf-8'))
+                        await writer.drain()
+                    del line
         except OSError:
             await self.send_error(writer, "404 Not Found", "Not Found")
 
+    async def serve_admin_static(self, writer, path):
+            try:
+                filepath = 'www' + path + ".html"
+                filepath = filepath.replace("/admin", "")
+                stat = os.stat(filepath)
+
+                content_type = "text/html"
+                if path.endswith(".css"):
+                    content_type = "text/css"
+                elif path.endswith(".js"):
+                    content_type = "application/javascript"
+                elif path.endswith(".jpg"):
+                    content_type = "image/jpeg"
+
+                header = (
+                    f"HTTP/1.1 200 OK\r\n"
+                    f"Content-Type: {content_type}\r\n"
+                    f"Content-Length: {stat[6]}\r\n"
+                    f"Connection: close\r\n"
+                    f"\r\n"
+                ).encode()
+
+                writer.write(header)
+                await writer.drain()
+                del header
+
+                # 本文は分割送信
+                with open(filepath, "r") as file:
+                    while True:
+                        line = file.readline()
+                        if not line:
+                            break
+                        writer.write(line.encode('utf-8'))
+                        await writer.drain()
+                    del line
+            except OSError:
+                await self.send_error(writer, "404 Not Found", "Not Found")
+
     def read_file(self, path):
         with open(path, "r") as file:
-            return file.read()
+            content = ""
+            while True:
+                line = file.readline()
+                if not line:
+                    break
+                content += line
+            return content
 
     # ----------------------
     # Handlers

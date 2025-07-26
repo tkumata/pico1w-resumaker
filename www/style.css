@@ -51,7 +51,7 @@ h6 {
 h2 {
   font-size: 1.8rem;
   margin-bottom: 8px;
-  background-color: #666666;
+  background-color: #333333;
 }
 
 h3 {
@@ -124,7 +124,7 @@ p {
   font-weight: bold;
   font-size: 1rem;
   color: #ffffff;
-  background-color: #333333;
+  background-color: #555555;
 }
 
 .personal-block {

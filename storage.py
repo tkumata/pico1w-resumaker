@@ -81,9 +81,12 @@ class Storage:
     def read_jobhist(self):
         try:
             with open(self.jobhist_file, "r") as file:
-                lines = file.read().strip().split("\n")
                 result = []
-                for line in lines:
+                while True:
+                    line = file.readline()
+                    if not line:  # End of file reached
+                        break
+                    line = line.strip()
                     if line:
                         job_no, name, desc = line.split(",", 2)
                         result.append({
@@ -91,6 +94,7 @@ class Storage:
                             "job_name": name,
                             "job_description": desc
                         })
+                    del line
                 return result
         except OSError:  # FileNotFoundError の代わりに OSError を使用
             return []
@@ -108,9 +112,12 @@ class Storage:
     def read_portrait(self):
         try:
             with open(self.portrait_file, "r") as file:
-                lines = file.read().strip().split("\n")
                 result = []
-                for line in lines:
+                while True:
+                    line = file.readline()
+                    if not line:
+                        break
+                    line = line.strip()
                     if line:
                         (
                             portrait_no,
@@ -122,6 +129,7 @@ class Storage:
                             "portrait_url": portrait_url,
                             "portrait_summary": portrait_summary
                         })
+                    del line
                 return result
         except OSError:
             return []

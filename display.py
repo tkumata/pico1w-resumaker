@@ -45,6 +45,7 @@ def show_ap_info(ip):
 
 def show_qr_code(ip, ssid, passwd):
     display.fill(COLORS["WHITE"])
+    display.text("■", 0, 0, 0xF800, size=1)
     qr = QRCode(version=3)
     qr.add_data(
         "WIFI:S:{};T:WPA;P:{};;URL:http://{}".format(ssid, passwd, ip), 0)
@@ -57,6 +58,11 @@ def show_qr_code(ip, ssid, passwd):
                     x * scale, y * scale, scale, scale, COLORS["BLACK"]
                 )
     display.text("IP: {}".format(ip), 0, 120, COLORS["BLACK"], size=1)
+    display.show()
+
+
+def text(text, x, y, color, size=1):
+    display.text(text, x, y, color, size=size)
     display.show()
 
 
