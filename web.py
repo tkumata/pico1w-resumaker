@@ -72,10 +72,15 @@ class WebServer:
                         )
                         return
 
-            if  method == "GET" and path in self.routes and path.startswith("/admin"):
+            if method == "GET" and path in self.routes and path.startswith("/admin"):
                 await self.serve_admin_static(writer, path)
+            elif method == "GET" and path in self.routes and path.startswith("/api/jobhist"):
+                await self.serve_get_api_jobhist(writer, path)
+            elif method == "GET" and path in self.routes and path.startswith("/api/portrait"):
+                await self.serve_get_api_portrait(writer, path)
             elif path in self.routes:
                 handler = self.routes[path]
+                # response は read_func() や read_file() の return
                 response = await handler(method, body)
                 content_type = (
                     "application/json" if path.startswith("/api/")
@@ -236,52 +241,136 @@ class WebServer:
         except OSError:
             await self.send_error(writer, "404 Not Found", "Not Found")
 
+    async def serve_get_api_jobhist(self, writer, path):
+        try:
+            filepath = path.replace("/api", "")  # path == /api/jobhist
+            filepath = "data" + filepath + ".csv"  # data/jobhist.csv
+            content_type = "application/json"
+
+            header = (
+                f"HTTP/1.1 200 OK\r\n"
+                f"Content-Type: {content_type}\r\n"
+                # f"Transfer-Encoding: chunked\r\n"
+                f"\r\n"
+            ).encode()
+
+            writer.write(header)
+            await writer.drain()
+            del header
+
+            first = True
+            writer.write(b'[\r\n')
+            with open(filepath, "r") as f:
+                while True:
+                    line = f.readline()
+                    if not line:
+                        break
+                    if not first:
+                        writer.write(b',')
+                    job_no, name, desc = line.split(",", 2)
+                    result = {
+                        "job_no": int(job_no),
+                        "job_name": name,
+                        "job_description": desc
+                    }
+                    json_data = ujson.dumps(result).encode()
+                    # writer.write(hex(len(json_data))[2:].encode() + b'\r\n')
+                    writer.write(json_data + b'\r\n')
+                    first = False
+            writer.write(b']\r\n\r\n')
+            await writer.drain()
+        except ValueError as e:
+            print(e)
+
+    async def serve_get_api_portrait(self, writer, path):
+        try:
+            filepath = path.replace("/api", "")
+            filepath = "data" + filepath + ".csv"
+            content_type = "application/json"
+
+            header = (
+                f"HTTP/1.1 200 OK\r\n"
+                f"Content-Type: {content_type}\r\n"
+                f"\r\n"
+            ).encode()
+
+            writer.write(header)
+            await writer.drain()
+            del header
+
+            first = True
+            writer.write(b'[\r\n')
+            with open(filepath, "r") as f:
+                while True:
+                    line = f.readline()
+                    if not line:
+                        break
+                    if not first:
+                        writer.write(b',')
+                    portrait_no, portrait_url, portrait_summary = line.split(
+                        ",", 2)
+                    result = {
+                        "portrait_no": int(portrait_no),
+                        "portrait_url": portrait_url,
+                        "portrait_summary": portrait_summary
+                    }
+                    json_data = ujson.dumps(result).encode()
+                    writer.write(json_data + b'\r\n')
+                    first = False
+            writer.write(b']\r\n\r\n')
+            await writer.drain()
+        except ValueError as e:
+            print(e)
+
     async def serve_admin_static(self, writer, path):
-            try:
-                filepath = 'www' + path + ".html"
-                filepath = filepath.replace("/admin", "")
-                stat = os.stat(filepath)
+        try:
+            filepath = 'www' + path + ".html"
+            filepath = filepath.replace("/admin", "")
+            stat = os.stat(filepath)
 
-                content_type = "text/html"
-                if path.endswith(".css"):
-                    content_type = "text/css"
-                elif path.endswith(".js"):
-                    content_type = "application/javascript"
-                elif path.endswith(".jpg"):
-                    content_type = "image/jpeg"
+            content_type = "text/html"
+            if path.endswith(".css"):
+                content_type = "text/css"
+            elif path.endswith(".js"):
+                content_type = "application/javascript"
+            elif path.endswith(".jpg"):
+                content_type = "image/jpeg"
 
-                header = (
-                    f"HTTP/1.1 200 OK\r\n"
-                    f"Content-Type: {content_type}\r\n"
-                    f"Content-Length: {stat[6]}\r\n"
-                    f"Connection: close\r\n"
-                    f"\r\n"
-                ).encode()
+            header = (
+                f"HTTP/1.1 200 OK\r\n"
+                f"Content-Type: {content_type}\r\n"
+                f"Content-Length: {stat[6]}\r\n"
+                f"Connection: close\r\n"
+                f"\r\n"
+            ).encode()
 
-                writer.write(header)
-                await writer.drain()
-                del header
+            writer.write(header)
+            await writer.drain()
+            del header
 
-                # 本文は分割送信
-                with open(filepath, "r") as file:
-                    while True:
-                        line = file.readline()
-                        if not line:
-                            break
-                        writer.write(line.encode('utf-8'))
-                        await writer.drain()
-                    del line
-            except OSError:
-                await self.send_error(writer, "404 Not Found", "Not Found")
+            # 本文は分割送信
+            with open(filepath, "r") as file:
+                while True:
+                    line = file.readline()
+                    if not line:
+                        break
+                    writer.write(line.encode('utf-8'))
+                    await writer.drain()
+                del line
+        except OSError:
+            await self.send_error(writer, "404 Not Found", "Not Found")
 
     def read_file(self, path):
         with open(path, "r") as file:
-            content = ""
+            content_array = []
             while True:
                 line = file.readline()
                 if not line:
                     break
-                content += line
+                content_array.append(line)  # ここまでは非連続メモリブロック
+                del line
+            content = "".join(content_array)  # 連続メモリブロック
+            del content_array
             return content
 
     # ----------------------
