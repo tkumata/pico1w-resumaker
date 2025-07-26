@@ -1,4 +1,3 @@
-import gc
 import network
 import uasyncio as asyncio
 from web import WebServer
@@ -49,7 +48,6 @@ async def main():
 # Run async main
 if __name__ == "__main__":
     try:
-        gc.threshold(1024 * 8)
         asyncio.run(main())
     except KeyboardInterrupt:
         print("Shutting down...")
