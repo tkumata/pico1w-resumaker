@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  const dateTime = document.getElementById("datetime");
   const userInfo = document.getElementById("user-info");
   const simplehistInfo = document.getElementById("simplehist-info");
   const jobhistInfo = document.getElementById("jobhist-info");
@@ -12,6 +13,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  dateTime.innerHTML = getTodayFormatted();
+
   userInfo.innerHTML = `
     <div class="user-image">
       <img src="/image.jpg" alt="User" loading="lazy">
@@ -23,8 +26,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     <p><label>住所</label>${user.usr_addr}</p>
     <div class="personal-block">
       <p><label>電話番号</label>${user.usr_phone || "なし"}</p>
-      <p><label>携帯電話番号</label>${user.usr_mobile}</p>
-      <p><label>メールアドレス</label>${user.usr_email}</p>
+      <p><label>携帯番号</label>${user.usr_mobile}</p>
+      <p><label>E メール</label>${user.usr_email}</p>
     </div>
     <div class="personal-block">
       <p><label>生年月日</label>${user.usr_birthday}</p>
@@ -82,6 +85,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       .join("")}
   `;
 });
+
+function getTodayFormatted() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}年${month}月${day}日 現在`;
+}
 
 function isInAdminNetwork(ip) {
   const ipToNum = (ip) => {

@@ -13,7 +13,7 @@ body {
 
 /* レイアウト */
 .container {
-  max-width: 768px;
+  max-width: 718px;
   margin: 0 auto;
   background: white;
   padding: 20px;
@@ -23,7 +23,7 @@ body {
 
 .admin {
   display: none;
-  max-width: 768px;
+  max-width: 718px;
   margin: 10px auto;
   background: white;
   padding: 20px;
@@ -72,6 +72,11 @@ h5 {
 h6 {
   font-size: 1rem;
   margin-bottom: 1px;
+}
+
+#datetime {
+  font-size: small;
+  text-align: right;
 }
 
 /* フォーム */
