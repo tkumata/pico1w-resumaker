@@ -1,5 +1,3 @@
-import typing
-
 from machine import Pin, SPI
 from lib.ssd1351 import SSD1351
 from lib.uQR import QRCode
@@ -54,13 +52,11 @@ def show_qr_code(ip, ssid, passwd):
         "WIFI:S:{};T:WPA;P:{};;URL:http://{}".format(ssid, passwd, ip), 0)
 
     matrix = qr.get_matrix()
-    matrix = typing.cast(list[list[bool]], qr.get_matrix())
-
     scale = 3
 
-    for y in range(len(matrix)):
+    for y in range(len(matrix)):  # type: ignore
         for x in range(len(matrix[0])):  # type: ignore
-            if matrix[y][x]:
+            if matrix[y][x]:  # type: ignore
                 display.fill_rect(x * scale, y * scale,
                                   scale, scale, COLORS["BLACK"])
     display.text("IP: {}".format(ip), 0, 120, COLORS["BLACK"], size=1)
