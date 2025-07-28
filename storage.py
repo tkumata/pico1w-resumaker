@@ -1,4 +1,5 @@
 import uos
+import gc
 
 
 class Storage:
@@ -102,12 +103,12 @@ class Storage:
     def write_jobhist(self, data):
         with open(self.jobhist_file, "w") as file:
             for entry in data:
-                jobdesc = entry['job_description'].replace("\n", "<br>")
-                file.write(
-                    f"{entry['job_no']},"
-                    f"{entry['job_name']},"
-                    f"{jobdesc}\n"
-                )
+                gc.collect()
+                file.write(f"{entry['job_no']},{entry['job_name']},")
+                for line in entry['job_description'].split('\n'):
+                    safe_line = line.replace(",", " ")  # CSV対策
+                    file.write(safe_line + "<br>")
+                file.write("\n")
 
     def read_portrait(self):
         try:

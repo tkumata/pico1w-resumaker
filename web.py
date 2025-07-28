@@ -1,7 +1,6 @@
 import uasyncio as asyncio
 import ujson
 import os
-import display
 import gc
 
 
@@ -25,7 +24,6 @@ class WebServer:
 
     async def start(self):
         _ = await asyncio.start_server(self.handle_client, "0.0.0.0", 80)
-        display.text("■", 0, 0, 0x07E0, size=1)
         while True:
             await asyncio.sleep(1)
 
@@ -40,18 +38,30 @@ class WebServer:
             if not method:
                 return await self.send_error(writer, "400 Bad Request", "Bad Request Line")
 
+            # Expect: 100-continue を確認し、レスポンスを返す
+            expect_header = [h for h in headers[1:]
+                             if h.lower().startswith("expect: 100-continue")]
+            if expect_header:
+                await self.send_continue(writer)
+
             content_length = self.get_content_length(headers[1:])
             body = None
 
             if method == "POST" and content_length > 0:
-                body_bytes = await self.read_exact(reader, content_length)
                 if path == "/api/upload":
+                    body_bytes = await self.read_exact(reader, content_length)
                     self.upload_headers = self.extract_custom_headers(
                         headers[1:])
                     body = body_bytes
                 else:
                     try:
-                        body = ujson.loads(body_bytes.decode("utf-8"))
+                        # body = ujson.loads(body_bytes.decode("utf-8"))
+                        ok = await self.write_temp_file(reader, content_length)
+                        if not ok:
+                            return await self.send_error(writer, "500 Internal Server Error", "File Write Failed")
+                        body = self.load_json_from_file()
+                        if body is None:
+                            return await self.send_error(writer, "400 Bad Request", "JSON Decode Error")
                     except (UnicodeError, ValueError):
                         return await self.send_error(writer, "400 Bad Request", "JSON Decode Error")
 
@@ -78,6 +88,40 @@ class WebServer:
                     await writer.wait_closed()
                 except Exception as e:
                     print("Error closing writer:", e)
+
+    async def send_continue(self, writer):
+        writer.write(b"HTTP/1.1 100 Continue\r\n\r\n")
+        await writer.drain()
+
+    async def write_temp_file(self, reader, content_length, temp_path="temp.json"):
+        try:
+            # print("[write] Start writing temp file")
+            with open(temp_path, "wb") as f:
+                remaining = content_length
+                bufsize = 512
+                while remaining > 0:
+                    # print("[write] Reading up to", min(bufsize, remaining))
+                    chunk = await reader.read(min(bufsize, remaining))
+                    # print("[write] Got chunk:", len(chunk))
+                    if not chunk:
+                        # print("[write] No more data received")
+                        break
+                    f.write(chunk)
+                    remaining -= len(chunk)
+                    # print("[write] Remaining:", remaining)
+            # print("[write] Finished writing temp file")
+            return True
+        except Exception as e:
+            print("[write] Error:", e)
+            return False
+
+    def load_json_from_file(self, temp_path="temp.json"):
+        try:
+            with open(temp_path, "r") as f:
+                return ujson.load(f)
+        except Exception as e:
+            print("Error parsing JSON file:", e)
+            return None
 
     async def parse_headers(self, reader):
         headers = []
