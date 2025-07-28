@@ -105,9 +105,13 @@ class Storage:
             for entry in data:
                 gc.collect()
                 file.write(f"{entry['job_no']},{entry['job_name']},")
-                for line in entry['job_description'].split('\n'):
+                lines = entry['job_description'].split('\n')
+                for i, line in enumerate(lines):
                     safe_line = line.replace(",", "、")
-                    file.write(safe_line)
+                    if i == len(lines) - 1:
+                        file.write(safe_line)
+                    else:
+                        file.write(safe_line + "<br>")
                 file.write("\n")
 
     def read_portrait(self):
