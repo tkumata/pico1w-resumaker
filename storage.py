@@ -106,8 +106,8 @@ class Storage:
                 gc.collect()
                 file.write(f"{entry['job_no']},{entry['job_name']},")
                 for line in entry['job_description'].split('\n'):
-                    safe_line = line.replace(",", " ")  # CSV対策
-                    file.write(safe_line + "<br>")
+                    safe_line = line.replace(",", "、")
+                    file.write(safe_line)
                 file.write("\n")
 
     def read_portrait(self):
