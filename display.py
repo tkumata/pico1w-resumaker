@@ -1,6 +1,9 @@
+import typing
+
 from machine import Pin, SPI
 from lib.ssd1351 import SSD1351
 from lib.uQR import QRCode
+
 import secrets
 
 COLORS = {
@@ -45,17 +48,21 @@ def show_ap_info(ip):
 
 def show_qr_code(ip, ssid, passwd):
     display.fill(COLORS["WHITE"])
+
     qr = QRCode(version=3)
     qr.add_data(
         "WIFI:S:{};T:WPA;P:{};;URL:http://{}".format(ssid, passwd, ip), 0)
+
     matrix = qr.get_matrix()
+    matrix = typing.cast(list[list[bool]], qr.get_matrix())
+
     scale = 3
-    for y in range(len(matrix)):  # type: ignore
+
+    for y in range(len(matrix)):
         for x in range(len(matrix[0])):  # type: ignore
-            if matrix[y][x]:  # type: ignore
-                display.fill_rect(
-                    x * scale, y * scale, scale, scale, COLORS["BLACK"]
-                )
+            if matrix[y][x]:
+                display.fill_rect(x * scale, y * scale,
+                                  scale, scale, COLORS["BLACK"])
     display.text("IP: {}".format(ip), 0, 120, COLORS["BLACK"], size=1)
     display.show()
 
