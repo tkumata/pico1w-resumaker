@@ -4,6 +4,11 @@
   font-size: 16px;
   line-height: 1.6;
 }
+@media screen and (orientation: landscape) {
+  * {
+    font-size: 14px !important;
+  }
+}
 
 body {
   margin: 0;
@@ -33,7 +38,7 @@ body {
 
 /* タイポグラフィ */
 h1 {
-  font-size: 2rem;
+  font-size: 32px;
   margin-bottom: 10px;
   color: #333333;
 }
@@ -49,33 +54,33 @@ h6 {
 }
 
 h2 {
-  font-size: 1.8rem;
+  font-size: 24px;
   margin-bottom: 8px;
   background-color: #333333;
 }
 
 h3 {
-  font-size: 1.5rem;
+  font-size: 20px;
   margin-bottom: 6px;
 }
 
 h4 {
-  font-size: 1.3rem;
+  font-size: 18px;
   margin: 5px 0;
 }
 
 h5 {
-  font-size: 1.2rem;
+  font-size: 16px;
   margin-bottom: 2px;
 }
 
 h6 {
-  font-size: 1rem;
+  font-size: 14px;
   margin-bottom: 1px;
 }
 
 #datetime {
-  font-size: small;
+  font-size: 14px;
   text-align: right;
 }
 
@@ -127,7 +132,7 @@ p {
 #user-info label {
   padding: 0 5px;
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 16px;
   color: #ffffff;
   background-color: #555555;
 }
@@ -139,7 +144,7 @@ p {
 }
 
 .user-name {
-  font-size: 1.5rem;
+  font-size: 20px;
   font-weight: bold;
   color: #333333;
 }
@@ -183,20 +188,20 @@ p {
 .entry label {
   display: flex;
   flex-direction: column;
-  font-size: 0.9rem;
+  font-size: 14px;
 }
 
 .entry input[type="date"],
 .entry textarea {
   padding: 4px 6px;
-  font-size: 0.9rem;
+  font-size: 14px;
   min-width: 100px;
 }
 
 .entry input[type="text"],
 .entry textarea {
   padding: 4px 6px;
-  font-size: 0.9rem;
+  font-size: 14px;
   min-width: 400px;
 }
 
@@ -212,7 +217,7 @@ p {
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 0.9rem;
+  font-size: 14px;
   cursor: pointer;
   height: fit-content;
 }
