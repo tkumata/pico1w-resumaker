@@ -1,12 +1,14 @@
 /* ベーススタイル */
 * {
   font-family: serif;
-  font-size: 16px;
   line-height: 1.6;
 }
-@media screen and (orientation: landscape) {
-  * {
-    font-size: 14px !important;
+html {
+  font-size: 16px;
+}
+@media only screen and (orientation: landscape) and (max-device-height: 430px) {
+  html {
+    font-size: 14px;
   }
 }
 
@@ -17,23 +19,18 @@ body {
 }
 
 /* レイアウト */
+.admin,
 .container {
   max-width: 718px;
+  padding: 20px;
   margin: 0 auto;
   background: white;
-  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .admin {
   display: none;
-  max-width: 718px;
-  margin: 10px auto;
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 /* タイポグラフィ */
@@ -144,7 +141,7 @@ p {
 }
 
 .user-name {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: bold;
   color: #333333;
 }
@@ -191,23 +188,16 @@ p {
   font-size: 14px;
 }
 
-.entry input[type="date"],
-.entry textarea {
-  padding: 4px 6px;
-  font-size: 14px;
+.entry input[type="date"] {
   min-width: 100px;
 }
 
-.entry input[type="text"],
-.entry textarea {
-  padding: 4px 6px;
-  font-size: 14px;
+.entry input[type="text"] {
   min-width: 400px;
 }
 
-#user-form textarea,
 .entry textarea {
-  min-height: 2em;
+  min-width: 400px;
   height: 300px;
 }
 
