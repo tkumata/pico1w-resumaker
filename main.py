@@ -1,10 +1,15 @@
-import network
-import uasyncio as asyncio
-from web import WebServer
+import display
+import secrets
+
 # from dns import DNSServer
 from storage import Storage
-import secrets
-import display
+from web import WebServer
+
+import gc
+import network
+import sys
+import uasyncio as asyncio
+
 
 # Wi-Fi AP setup
 ap = network.WLAN(network.AP_IF)
@@ -29,19 +34,45 @@ web_server = WebServer(storage)
 # dns_server = DNSServer(ip=ap.ifconfig()[0])
 
 
+def unload_modules():
+    TARGET_MODULES = (
+        "lib.ssd1351",
+        "lib.uQR",
+        "misakifont",
+    )
+
+    for name in dir(display):
+        attr = getattr(display, name)
+        modname = getattr(attr, "__module__", "")
+        if modname in TARGET_MODULES:
+            delattr(display, name)
+
+    for mod in TARGET_MODULES:
+        sys.modules.pop(mod, None)
+    sys.modules.pop("framebuf", None)
+
+    gc.collect()
+
+
 async def main():
-    # Display Wi-Fi info on OLED (assuming display.py handles this)
-    ip = ap.ifconfig()[0]  # Get the IP address
+    ip = ap.ifconfig()[0]
     # display.show_ap_info(ip)
 
     # Show QR code with Wi-Fi credentials
     display.show_qr_code(ip, secrets.SSID, secrets.PASSWORD)
 
-    await asyncio.gather(
-        # Start Web server
-        web_server.start(),
+    # check memory
+    print("Before Memory Free:", gc.mem_free() / 1024, "KB")
 
-        # Start DNS server
+    # unload unnecessary modules
+    unload_modules()
+
+    # check memory
+    print("After Memory Free:", gc.mem_free() / 1024, "KB")
+
+    # start servers
+    await asyncio.gather(
+        web_server.start(),
         # dns_server.start(),
     )
 
@@ -54,4 +85,5 @@ if __name__ == "__main__":
     except Exception as e:
         print("Fatal error:", e)
     finally:
-        display.clear()
+        ap.active(False)
+        sta.active(False)

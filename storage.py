@@ -1,4 +1,5 @@
 import uos
+import gc
 
 
 class Storage:
@@ -27,56 +28,47 @@ class Storage:
 
     def read_user(self):
         try:
-            with open(self.user_file, "r") as file:
-                lines = file.read().strip().split("\n")
-                if not lines or lines[0] == "":
-                    return {}
-                return dict(zip(self.USER_KEYS, lines[0].split(",")))
+            lines = self._safe_open_lines(self.user_file)
+            if not lines or lines[0] == "":
+                return {}
+            return dict(zip(self.USER_KEYS, lines[0].split(",")))
         except OSError:  # FileNotFoundError の代わりに OSError を使用
             return {}
 
     def write_user(self, data):
-        with open(self.user_file, "w") as file:
-            values = [
-                data.get(key, "").replace("\n", "<br>")
-                if key in self.KEYS_TO_REPLACE
-                else data.get(key, "")
-                for key in self.USER_KEYS
-            ]
-            file.write(",".join(values))
+        values = [self._sanitize_value(key, data.get(key, ""))
+                  for key in self.USER_KEYS]
+        self._safe_write_lines(self.user_file, [",".join(values)])
 
     def read_simplehist(self):
         try:
-            with open(self.simplehist_file, "r") as file:
-                lines = file.read().strip().split("\n")
-                result = []
-                for line in lines:
-                    if line:
-                        (
-                            hist_no,
-                            hist_datetime,
-                            hist_status,
-                            hist_name
-                        ) = line.split(",", 3)
-                        result.append({
-                            "hist_no": int(hist_no),
-                            "hist_datetime": hist_datetime,
-                            "hist_status": hist_status,
-                            "hist_name": hist_name
-                        })
-                return result
+            lines = self._safe_open_lines(self.simplehist_file)
+            result = []
+            for line in lines:
+                if line:
+                    (
+                        hist_no,
+                        hist_datetime,
+                        hist_status,
+                        hist_name
+                    ) = line.split(",", 3)
+                    result.append({
+                        "hist_no": int(hist_no),
+                        "hist_datetime": hist_datetime,
+                        "hist_status": hist_status,
+                        "hist_name": hist_name
+                    })
+            return result
         except OSError:  # FileNotFoundError の代わりに OSError を使用
             return []
 
     def write_simplehist(self, data):
-        with open(self.simplehist_file, "w") as file:
-            for entry in data:
-                file.write(
-                    f"{entry['hist_no']},"
-                    f"{entry['hist_datetime']},"
-                    f"{entry['hist_status']},"
-                    f"{entry['hist_name']}\n"
-                )
+        lines = [
+            f"{entry['hist_no']},{entry['hist_datetime']},{entry['hist_status']},{entry['hist_name']}"
+            for entry in data
+        ]
+        gc.collect()
+        self._safe_write_lines(self.simplehist_file, lines)
 
     def read_jobhist(self):
         try:
@@ -102,12 +94,16 @@ class Storage:
     def write_jobhist(self, data):
         with open(self.jobhist_file, "w") as file:
             for entry in data:
-                jobdesc = entry['job_description'].replace("\n", "<br>")
-                file.write(
-                    f"{entry['job_no']},"
-                    f"{entry['job_name']},"
-                    f"{jobdesc}\n"
-                )
+                gc.collect()
+                file.write(f"{entry['job_no']},{entry['job_name']},")
+                lines = entry['job_description'].split('\n')
+                for i, line in enumerate(lines):
+                    safe_line = line.replace(",", "、")
+                    if i == len(lines) - 1:
+                        file.write(safe_line)
+                    else:
+                        file.write(safe_line + "<br>")
+                file.write("\n")
 
     def read_portrait(self):
         try:
@@ -143,3 +139,21 @@ class Storage:
                     f"{entry['portrait_url']},"
                     f"{portsummary}\n"
                 )
+
+    def _safe_open_lines(self, filepath):
+        try:
+            with open(filepath, "r") as file:
+                return file.read().strip().split("\n")
+        except OSError:
+            return []
+
+    def _safe_write_lines(self, filepath, lines):
+        with open(filepath, "w") as file:
+            file.write("\n".join(lines))
+
+    def _sanitize_value(self, key, value):
+        if value is None:
+            return ""
+        if key in self.KEYS_TO_REPLACE:
+            return value.replace("\n", "<br>")
+        return value

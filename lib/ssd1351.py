@@ -41,6 +41,7 @@ SSD1351_CMD_HORIZSCROLL = const(0x96)
 SSD1351_CMD_STOPSCROLL = const(0x9E)
 SSD1351_CMD_STARTSCROLL = const(0x9F)
 
+
 class SSD1351:
     def __init__(self, width, height, spi, dc, cs, rst, rate=10000000):
         self.width = width
@@ -236,7 +237,8 @@ class SSD1351:
                 if (0x80 >> col) & fd[row]:
                     for i in range(size):
                         for j in range(size):
-                            self.pixel(x + col * size + i, y + row * size + j, color)
+                            self.pixel(x + col * size + i, y +
+                                       row * size + j, color)
 
     def text(self, text, x, y, color, font=None, size=1):
         """Draw text at position (x, y) with given color and size"""

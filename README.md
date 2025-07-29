@@ -4,6 +4,8 @@ Raspberry Pi Pico WH によるポータブル履歴書
 
 詳細は、[DesignDocs](./docs/DesignDocs.md) 参照してください。
 
+![screenshot](./docs/pico1w-resumaker.jpg)
+
 ## 用意するハードウェア
 
 - [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) (≠ Pico2 WH)
@@ -25,7 +27,7 @@ Raspberry Pi Pico WH によるポータブル履歴書
 2. Click left pane
 3. Select `Initialize MicroPico project`
 
-### ソフトウェア準備
+### 本ソフトウェア準備
 
 ```bash
 git clone git@github.com:tkumata/pico1w-resumaker.git
@@ -37,7 +39,7 @@ vi secrets.py
 vi .vscode/settings.json
 ```
 
-secrets.py の説明
+secrets.py について
 
 | Variables    | Descriptions                      |
 | ------------ | --------------------------------- |
@@ -46,10 +48,16 @@ secrets.py の説明
 | STA_SSID     | SSID of your home Wi-Fi           |
 | STA_PASSWORD | Wi-Fi password of your home Wi-Fi |
 
-.vscode/settings.json で TTY の指定をします。Mac の場合以下になると思います。Linux の場合 `/dev/ttyACM0` になると思います。
+.vscode/settings.json で TTY の指定をします。Mac (M4 Macbook Air macOS Sequoia) の場合以下になります。
 
 ```json
 "micropico.manualComDevice": "/dev/tty.usbmodem113201",
+```
+
+Linux (Debian 系) の場合以下になると思います。
+
+```json
+"micropico.manualComDevice": "/dev/ttyACM0",
 ```
 
 ### 配線
@@ -75,7 +83,7 @@ secrets.py の説明
 1. Pico WH を母艦 PC から外し
 2. Pico WH を電源に接続
 
-## 使い方
+## アクセス方法
 
 ### 管理画面
 
@@ -91,8 +99,3 @@ secrets.py の説明
 
 1. OLED に映った QR コードをスキャン
 2. http://192.168.4.1 に接続
-
-## TTY
-
-- M4 MacBook Air + macOS Sequoia: /dev/tty.usbmodem113201
-- Rock5B + Armbian 25.5.1: /dev/ttyACM0

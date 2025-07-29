@@ -12,7 +12,6 @@
     "editor.formatOnSave": true
   },
   "flake8.args": ["--max-line-length", "120"],
-  "micropico.openOnStart": true,
   "micropico.pyIgnore": [
     "**/.picowgo",
     "**/.micropico",
@@ -29,5 +28,6 @@
     "**/*.bak",
     "**/*.md"
   ],
-  "micropico.manualComDevice": "/dev/tty.usbmodem113201"
+  "micropico.manualComDevice": "/dev/tty.usbmodem113201",
+  "micropico.softResetAfterUpload": true
 }
