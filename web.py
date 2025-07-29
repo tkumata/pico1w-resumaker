@@ -329,10 +329,8 @@ class WebServer:
             return await self.send_chunked(writer, ujson.dumps(read_func()).encode())
         return await self.send_chunked(
             writer,
-            ujson.dumps({
-                "status": "error",
-                "message": "Method not allowed"
-            }).encode()
+            ujson.dumps({"status": "error",
+                         "message": "Method not allowed"}).encode()
         )
 
     async def handle_api_user(self, method, data, writer):
