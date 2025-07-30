@@ -47,6 +47,47 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
+async function saveUser() {
+  try {
+    const form = document.getElementById("user-form");
+    const data = {
+      usr_name: form.usr_name.value,
+      usr_name_kana: form.usr_name_kana.value,
+      usr_gender: form.usr_gender.value,
+      usr_birthday: form.usr_birthday.value,
+      usr_age: form.usr_age.value,
+      usr_addr: form.usr_addr.value,
+      usr_phone: form.usr_phone.value,
+      usr_mobile: form.usr_mobile.value,
+      usr_email: form.usr_email.value,
+      usr_family: form.usr_family.value,
+      usr_licenses: form.usr_licenses.value,
+      usr_siboudouki: form.usr_siboudouki.value,
+      usr_hobby: form.usr_hobby.value,
+      usr_skill: form.usr_skill.value,
+      usr_access: form.usr_access.value,
+    };
+    const response = await fetch("/admin/user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      console.error(
+        "Failed to save user data:",
+        response.status,
+        response.statusText
+      );
+      alert("保存に失敗しました");
+      return;
+    }
+    alert("保存しました");
+  } catch (error) {
+    console.error("Error saving user data:", error);
+    alert("保存中にエラーが発生しました");
+  }
+}
+
 /**
  * 胸像写真のアップロードフロントエンド処理
  */
