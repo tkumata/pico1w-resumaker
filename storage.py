@@ -58,6 +58,8 @@ class Storage:
                         "hist_status": hist_status,
                         "hist_name": hist_name
                     })
+                    del line
+            del lines
             return result
         except OSError:  # FileNotFoundError の代わりに OSError を使用
             return []

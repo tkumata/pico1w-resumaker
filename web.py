@@ -3,6 +3,8 @@ import ujson
 import os
 import gc
 
+buffer_size = 256
+
 
 class WebServer:
     def __init__(self, storage):
@@ -43,6 +45,7 @@ class WebServer:
                              if h.lower().startswith("expect: 100-continue")]
             if expect_header:
                 await self.send_continue(writer)
+                del expect_header
 
             content_length = self.get_content_length(headers[1:])
             body = None
@@ -53,6 +56,7 @@ class WebServer:
                     self.upload_headers = self.extract_custom_headers(
                         headers[1:])
                     body = body_bytes
+                    del body_bytes
                 else:
                     try:
                         success = await self.write_temp_file(reader, content_length)
@@ -63,6 +67,8 @@ class WebServer:
                             return await self.send_error(writer, "400 Bad Request", "JSON Decode Error")
                     except (UnicodeError, ValueError):
                         return await self.send_error(writer, "400 Bad Request", "JSON Decode Error")
+
+            del headers
 
             if method == "GET" and path in self.routes and path.startswith("/admin"):
                 return await self.serve_admin_static(writer, path)
@@ -77,6 +83,8 @@ class WebServer:
             else:
                 return await self.serve_static_file(writer, path)
 
+            del body
+
         except MemoryError as error:
             print("handle_client memory error:", error)
         except Exception as error:
@@ -84,6 +92,7 @@ class WebServer:
         finally:
             if writer:
                 await self.safe_close(writer)
+                del writer
 
     async def safe_close(self, writer):
         try:
@@ -99,7 +108,7 @@ class WebServer:
         try:
             with open(temp_path, "wb") as file_obj:
                 remaining = content_length
-                bufsize = 512
+                bufsize = buffer_size
                 while remaining > 0:
                     chunk = await reader.read(min(bufsize, remaining))
                     if not chunk:
@@ -162,6 +171,8 @@ class WebServer:
             if ":" in header:
                 key, value = header.split(":", 1)
                 result[key.strip().lower()] = value.strip()
+            del header
+        del headers
         return result
 
     async def send_response_header(self, writer, status, content_type):
@@ -174,15 +185,14 @@ class WebServer:
         await writer.drain()
 
     async def send_error(self, writer, status, message):
-        response = ujson.dumps({
-            "status": "error",
-            "message": message
-        }).encode()
         await self.send_response_header(writer, status, "application/json")
-        await self.send_chunked(writer, response)
+        await self.send_chunked(
+            writer,
+            ujson.dumps({"status": "error",
+                         "message": message}).encode())
 
     async def send_chunked(self, writer, data):
-        chunk_size = 512
+        chunk_size = buffer_size
         for i in range(0, len(data), chunk_size):
             writer.write(data[i:i+chunk_size])
             await writer.drain()
@@ -210,7 +220,7 @@ class WebServer:
             mode = "rb" if file_extension in [".jpg", ".jpeg"] else "r"
             with open(filepath, mode) as file_obj:
                 while True:
-                    chunk = file_obj.read(512)
+                    chunk = file_obj.read(buffer_size)
                     if not chunk:
                         break
                     writer.write(chunk if isinstance(chunk, bytes)

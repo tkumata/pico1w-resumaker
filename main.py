@@ -62,13 +62,13 @@ async def main():
     display.show_qr_code(ip, secrets.SSID, secrets.PASSWORD)
 
     # check memory
-    print("Before Memory Free:", gc.mem_free() / 1024, "KB")
+    # print("Before Memory Free:", gc.mem_free() / 1024, "KB")
 
     # unload unnecessary modules
     unload_modules()
 
     # check memory
-    print("After Memory Free:", gc.mem_free() / 1024, "KB")
+    # print("After Memory Free:", gc.mem_free() / 1024, "KB")
 
     # start servers
     await asyncio.gather(
