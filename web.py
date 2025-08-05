@@ -3,7 +3,9 @@ import ujson
 import os
 import gc
 
-buffer_size = 256
+# バッファサイズを定数として定義
+BUFFER_SIZE = 256
+buffer_size = BUFFER_SIZE  # 後方互換性のため
 
 
 class WebServer:
@@ -32,29 +34,24 @@ class WebServer:
     async def handle_client(self, reader, writer):
         try:
             gc.collect()
-            headers = await self.parse_headers(reader)
-            if not headers:
+            first_line, content_length, expect_continue, custom_headers = await self.parse_headers_optimized(reader)
+            if not first_line:
                 return await self.send_error(writer, "400 Bad Request", "Null Request")
 
-            method, path = self.parse_request_line(headers[0])
+            method, path = self.parse_request_line(first_line)
             if not method:
                 return await self.send_error(writer, "400 Bad Request", "Bad Request Line")
 
             # Expect: 100-continue を確認し、レスポンスを返す
-            expect_header = [h for h in headers[1:]
-                             if h.lower().startswith("expect: 100-continue")]
-            if expect_header:
+            if expect_continue:
                 await self.send_continue(writer)
-                del expect_header
 
-            content_length = self.get_content_length(headers[1:])
             body = None
 
             if method == "POST" and content_length > 0:
                 if path == "/api/upload":
                     body_bytes = await self.read_exact(reader, content_length)
-                    self.upload_headers = self.extract_custom_headers(
-                        headers[1:])
+                    self.upload_headers = custom_headers
                     body = body_bytes
                     del body_bytes
                 else:
@@ -67,8 +64,6 @@ class WebServer:
                             return await self.send_error(writer, "400 Bad Request", "JSON Decode Error")
                     except (UnicodeError, ValueError):
                         return await self.send_error(writer, "400 Bad Request", "JSON Decode Error")
-
-            del headers
 
             if method == "GET" and path in self.routes and path.startswith("/admin"):
                 return await self.serve_admin_static(writer, path)
@@ -128,17 +123,30 @@ class WebServer:
             print("Error parsing JSON file:", error)
             return None
 
-    async def parse_headers(self, reader):
-        headers = []
+    async def parse_headers_optimized(self, reader):
+        first_line = None
+        content_length = 0
+        expect_continue = False
+        custom_headers = {}
+
         while True:
             line = await reader.readline()
             if not line or line == b"\r\n":
                 break
             try:
-                headers.append(line.decode("utf-8").strip())
-            except UnicodeError:
-                return None
-        return headers
+                line_str = line.decode("utf-8").strip()
+                if first_line is None:
+                    first_line = line_str
+                elif line_str.lower().startswith("content-length:"):
+                    content_length = int(line_str.split(":", 1)[1].strip())
+                elif line_str.lower().startswith("expect: 100-continue"):
+                    expect_continue = True
+                elif line_str.lower().startswith(("x-filename:", "x-final:")):
+                    key, value = line_str.split(":", 1)
+                    custom_headers[key.strip().lower()] = value.strip()
+            except (UnicodeError, ValueError):
+                return None, 0, False, {}
+        return first_line, content_length, expect_continue, custom_headers
 
     def parse_request_line(self, line):
         try:
@@ -146,15 +154,6 @@ class WebServer:
             return method, path
         except ValueError:
             return None, None
-
-    def get_content_length(self, headers):
-        for header in headers:
-            if header.lower().startswith("content-length:"):
-                try:
-                    return int(header.split(":", 1)[1].strip())
-                except ValueError:
-                    return 0
-        return 0
 
     async def read_exact(self, reader, total_length):
         buffer = b""
@@ -164,16 +163,6 @@ class WebServer:
                 break
             buffer += chunk
         return buffer
-
-    def extract_custom_headers(self, headers):
-        result = {}
-        for header in headers:
-            if ":" in header:
-                key, value = header.split(":", 1)
-                result[key.strip().lower()] = value.strip()
-            del header
-        del headers
-        return result
 
     async def send_response_header(self, writer, status, content_type):
         header = (
@@ -186,15 +175,15 @@ class WebServer:
 
     async def send_error(self, writer, status, message):
         await self.send_response_header(writer, status, "application/json")
-        await self.send_chunked(
-            writer,
-            ujson.dumps({"status": "error",
-                         "message": message}).encode())
+        error_data = ujson.dumps({"status": "error", "message": message})
+        await self.send_chunked(writer, error_data.encode())
 
     async def send_chunked(self, writer, data):
         chunk_size = buffer_size
-        for i in range(0, len(data), chunk_size):
-            writer.write(data[i:i+chunk_size])
+        data_len = len(data)
+        for i in range(0, data_len, chunk_size):
+            end_pos = min(i + chunk_size, data_len)
+            writer.write(data[i:end_pos])
             await writer.drain()
 
     async def serve_static_file(self, writer, path):
@@ -205,26 +194,38 @@ class WebServer:
 
     async def _serve_file(self, writer, filepath):
         try:
-            file_extension = filepath[filepath.rfind(
-                '.'):].lower() if '.' in filepath else ''
-            content_type = {
-                ".css": "text/css",
-                ".js": "application/javascript",
-                ".jpg": "image/jpeg",
-                ".jpeg": "image/jpeg",
-                ".html": "text/html"
-            }.get(file_extension, "text/plain")
+            # ファイル拡張子を効率的に取得
+            dot_pos = filepath.rfind('.')
+            if dot_pos != -1:
+                file_extension = filepath[dot_pos:].lower()
+            else:
+                file_extension = ''
+
+            # 辞書をタプルのペアに変更してメモリ使用量を削減
+            if file_extension == ".css":
+                content_type = "text/css"
+            elif file_extension == ".js":
+                content_type = "application/javascript"
+            elif file_extension in (".jpg", ".jpeg"):
+                content_type = "image/jpeg"
+            elif file_extension == ".html":
+                content_type = "text/html"
+            else:
+                content_type = "text/plain"
 
             await self.send_response_header(writer, "200 OK", content_type)
 
-            mode = "rb" if file_extension in [".jpg", ".jpeg"] else "r"
+            is_binary = file_extension in (".jpg", ".jpeg")
+            mode = "rb" if is_binary else "r"
             with open(filepath, mode) as file_obj:
                 while True:
                     chunk = file_obj.read(buffer_size)
                     if not chunk:
                         break
-                    writer.write(chunk if isinstance(chunk, bytes)
-                                 else chunk.encode("utf-8"))
+                    if is_binary:
+                        writer.write(chunk)
+                    else:
+                        writer.write(chunk.encode("utf-8"))
                     await writer.drain()
         except OSError:
             await self.send_error(writer, "404 Not Found", "Not Found")
@@ -232,8 +233,8 @@ class WebServer:
     async def serve_csv_as_json(self, writer, path):
         filename = "data" + path.replace("/api", "") + ".csv"
         field_map = {
-            "/api/jobhist": ["job_no", "job_name", "job_description"],
-            "/api/portrait": ["portrait_no", "portrait_url", "portrait_summary"]
+            "/api/jobhist": ("job_no", "job_name", "job_description"),
+            "/api/portrait": ("portrait_no", "portrait_url", "portrait_summary")
         }
         keys = field_map.get(path)
         if not keys:
@@ -243,16 +244,25 @@ class WebServer:
         writer.write(b'[\r\n')
         await writer.drain()
 
-        with open(filename, "r") as file_obj:
-            first = True
-            for line in file_obj:
-                if not first:
-                    writer.write(b',')
-                values = line.strip().split(",", len(keys) - 1)
-                record = {k: (int(v) if k.endswith("_no") else v)
-                          for k, v in zip(keys, values)}
-                await self.send_chunked(writer, ujson.dumps(record).encode() + b'\r\n')
-                first = False
+        try:
+            with open(filename, "r") as file_obj:
+                first = True
+                while True:
+                    line = file_obj.readline()
+                    if not line:
+                        break
+                    line = line.strip()
+                    if line:
+                        if not first:
+                            writer.write(b',')
+                        values = line.split(",", len(keys) - 1)
+                        record = {k: (int(v) if k.endswith("_no") else v)
+                                  for k, v in zip(keys, values)}
+                        await self.send_chunked(writer, ujson.dumps(record).encode() + b'\r\n')
+                        first = False
+                        del values, record
+        except OSError:
+            pass
         writer.write(b']\r\n\r\n')
         await writer.drain()
 
@@ -270,11 +280,9 @@ class WebServer:
 
     async def handle_image_upload(self, method, data, writer=None):
         if method != "POST":
-            return await self.send_chunked(
-                writer,
-                ujson.dumps({"status": "error",
-                             "message": "Method not allowed"}).encode()
-            )
+            error_msg = ujson.dumps(
+                {"status": "error", "message": "Method not allowed"})
+            return await self.send_chunked(writer, error_msg.encode())
 
         filename = self.upload_headers.get("x-filename", "tmp.jpg")
         is_final = self.upload_headers.get(
@@ -284,28 +292,24 @@ class WebServer:
             with open("/www/" + filename, "ab") as file_obj:
                 file_obj.write(data)
         except Exception as error:
-            return await self.send_chunked(
-                writer,
-                ujson.dumps({"status": "error",
-                             "message": "Write Error: " + str(error)}).encode()
-            )
+            error_msg = ujson.dumps(
+                {"status": "error", "message": "Write Error: " + str(error)})
+            return await self.send_chunked(writer, error_msg.encode())
 
         if is_final:
             try:
                 os.rename("/www/tmp.jpg", "/www/image.jpg")
-                return await self.send_chunked(
-                    writer,
-                    ujson.dumps({"status": "success",
-                                 "message": "Upload complete"}).encode()
-                )
+                success_msg = ujson.dumps(
+                    {"status": "success", "message": "Upload complete"})
+                return await self.send_chunked(writer, success_msg.encode())
             except OSError as error:
-                return await self.send_chunked(
-                    writer,
-                    ujson.dumps({"status": "error",
-                                 "message": "Failure Rename: " + str(error)}).encode()
-                )
+                error_msg = ujson.dumps(
+                    {"status": "error", "message": "Failure Rename: " + str(error)})
+                return await self.send_chunked(writer, error_msg.encode())
 
-        return await self.send_chunked(writer, ujson.dumps({"status": "success", "message": "Chunk received"}).encode())
+        success_msg = ujson.dumps(
+            {"status": "success", "message": "Chunk received"})
+        return await self.send_chunked(writer, success_msg.encode())
 
     async def handle_index(self, method, data, writer):
         if not all((self.storage.read_user(), self.storage.read_simplehist(), self.storage.read_jobhist())):
@@ -320,7 +324,8 @@ class WebServer:
             return await self.stream_file(writer, filepath)
         if method == "POST":
             write_func(data)
-            return await self.send_chunked(writer, ujson.dumps({"status": "success"}).encode())
+            success_msg = ujson.dumps({"status": "success"})
+            return await self.send_chunked(writer, success_msg.encode())
 
     async def handle_user(self, method, data, writer):
         return await self.html_post_handler(method, data, "www/user.html", self.storage.write_user, writer)
@@ -336,12 +341,12 @@ class WebServer:
 
     async def api_get_handler(self, method, read_func, writer):
         if method == "GET":
-            return await self.send_chunked(writer, ujson.dumps(read_func()).encode())
-        return await self.send_chunked(
-            writer,
-            ujson.dumps({"status": "error",
-                         "message": "Method not allowed"}).encode()
-        )
+            data = read_func()
+            json_data = ujson.dumps(data)
+            return await self.send_chunked(writer, json_data.encode())
+        error_msg = ujson.dumps(
+            {"status": "error", "message": "Method not allowed"})
+        return await self.send_chunked(writer, error_msg.encode())
 
     async def handle_api_user(self, method, data, writer):
         return await self.api_get_handler(method, self.storage.read_user, writer)

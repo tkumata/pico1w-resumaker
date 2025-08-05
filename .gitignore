@@ -18,3 +18,4 @@ __pycache__/
 .micropico
 secrets.py
 lib/misakifont
+CLAUDE.md
