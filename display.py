@@ -59,7 +59,7 @@ def show_qr_code(ip, ssid, passwd):
             if matrix[y][x]:  # type: ignore
                 display.fill_rect(x * scale, y * scale,
                                   scale, scale, COLORS["BLACK"])
-    display.text("IP: {}".format(ip), 0, 120, COLORS["BLACK"], size=1)
+    display.text("IP:{}".format(ip), 0, 120, COLORS["BLACK"], size=1)
     display.show()
 
 

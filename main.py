@@ -38,7 +38,7 @@ def unload_modules():
     TARGET_MODULES = (
         "lib.ssd1351",
         "lib.uQR",
-        "misakifont",
+        "litefont",
     )
 
     for name in dir(display):
