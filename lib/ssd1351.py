@@ -5,7 +5,7 @@ import time
 
 from machine import Pin
 from micropython import const
-from misakifont import MisakiFont
+from litefont import LiteFont
 import framebuf
 
 # Constants for SSD1351 commands
@@ -242,7 +242,7 @@ class SSD1351:
 
     def text(self, text, x, y, color, font=None, size=1):
         """Draw text at position (x, y) with given color and size"""
-        mf = MisakiFont()
+        mf = LiteFont()
         for c in text:
             d = mf.font(ord(c), flgz=True)
             self.show_bitmap(d, x, y, color, size)
