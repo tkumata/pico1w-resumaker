@@ -8,11 +8,11 @@ Raspberry Pi Pico WH によるポータブル履歴書
 
 ## 概要
 
-- Pico W を Wi-Fi AP にする
+- Pico WH を Wi-Fi AP にする
 - QR コード生成機能
   - OLED に QR コード表示
   - QR コードで Wi-Fi AP に自動接続
-- Pico W を Web サーバにする
+- Pico WH を Web サーバにする
   - 履歴書作成フォームを提供
   - 履歴書データ読み込み・書き込み API を提供
   - 証明写真アップロード機能
@@ -24,9 +24,22 @@ Raspberry Pi Pico WH によるポータブル履歴書
 - HTTP リクエスト・レスポンスと csv ファイルの読み書きなどあらゆるデータを chunk で処理
 - 192.168.11.x からのアクセスで管理用リンクメニューを表示
 
+```text
++----+              +-----------------------------+              +--------+
+|    |              | Raspberry Pi Pico WH        |              | Phone  |
+| PC | -- Wi-Fi --> | 192.168.11.14   192.168.4.1 | <-- Wi-Fi -- | Tablet |
+|    |              | STA             AP          |              |        |
++----+              +-----------------------------+              +--------+
+                    | Flash mem  |        |                          ^
+                    | (CSV data) | +--------------+                 /
+                    +------------+ | OLED SSD1351 |                / Scan QR code
+                                   | QR code      | --------------'
+                                   +--------------+
+```
+
 ## 用意するハードウェア
 
-### Pico W
+### Pico WH
 
 - [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) (≠ Pico2 WH)
 
