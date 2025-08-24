@@ -24,7 +24,7 @@ rst = Pin(17, Pin.OUT)
 
 display = SSD1351(128, 128, spi, dc, cs, rst)
 
-# QRコードキャッシュとOLED制御用の変数
+# QR コードキャッシュと OLED 制御用の変数
 qr_cache = None
 display_on = True
 display_cycle_running = False
@@ -54,20 +54,20 @@ def show_ap_info(ip):
 def show_qr_code(ip, ssid, passwd):
     global qr_cache
 
-    # QRコードをキャッシュから使用、または新規生成
+    # QR コードをキャッシュから使用、または新規生成
     if qr_cache is None:
         qr = QRCode(version=3)
         qr.add_data(
             "WIFI:S:{};T:WPA;P:{};;URL:http://{}".format(ssid, passwd, ip), 0)
         matrix = qr.get_matrix()
 
-        # QRコードマトリックスをキャッシュ
+        # QR コードマトリックスをキャッシュ
         qr_cache = {
             'matrix': matrix,
             'ip': ip
         }
 
-        # QRモジュールをunload
+        # QR モジュールを unload
         unload_modules()
 
     display.fill(COLORS["WHITE"])
@@ -130,7 +130,7 @@ def display_on_func():
 
 
 def show_cached_qr():
-    """キャッシュされたQRコードを表示"""
+    """キャッシュされた QR コードを表示"""
     global qr_cache
 
     if qr_cache is None:
