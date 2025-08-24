@@ -1,6 +1,7 @@
 """
 軽量フォントクラス（0-9a-zA-Z記号のみ対応）
 メモリ使用量を大幅に削減した軽量版
+7x7フォントを改善して視認性向上
 """
 
 from .lite_fontdata import lite_font_data, lite_font_table
