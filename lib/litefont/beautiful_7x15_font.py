@@ -1,13 +1,14 @@
 """
 美しい手動設計7x15フォント
-各文字を個別に美しくデザインした高品質フォント
+各文字を個別にデザインした高品質フォント
 """
+
 
 def pattern_to_bytes(pattern_str):
     """パターン文字列からバイトデータに変換"""
     lines = pattern_str.strip().split('\n')
     font_data = []
-    
+
     for line in lines:
         if len(line) >= 7:
             byte_val = 0
@@ -15,10 +16,11 @@ def pattern_to_bytes(pattern_str):
                 if i < len(line) and line[i] == '█':
                     byte_val |= (1 << (7-i-1))
             font_data.append(byte_val)
-    
+
     return font_data
 
-# 美しい7x15フォントパターン定義
+
+# 7x15フォントパターン定義
 FONT_PATTERNS = {
     ' ': '''
 ·······
@@ -36,7 +38,7 @@ FONT_PATTERNS = {
 ·······
 ·······
 ·······''',
-    
+
     # 数字
     '0': '''
 ·█████·
@@ -397,9 +399,10 @@ FONT_PATTERNS = {
 ··███··''',
 }
 
+
 def generate_beautiful_font_data():
-    """美しいフォントデータを生成"""
-    
+    """フォントデータを生成"""
+
     # フォントテーブル（元の順序を保持）
     font_table = [
         0x0020,  # スペース文字
@@ -420,16 +423,16 @@ def generate_beautiful_font_data():
         0x007c, 0x003b, 0x0027, 0x003a, 0x0022, 0x002c, 0x002e, 0x002f,  # |;':",./
         0x003c, 0x003e, 0x003f,  # <>?
     ]
-    
+
     all_font_data = []
-    
+
     for code in font_table:
         char = chr(code)
-        
+
         # 特別なケース
         if code == 0x3000:  # 全角スペース
             char = ' '
-        
+
         # パターンが定義されている場合
         if char in FONT_PATTERNS:
             font_bytes = pattern_to_bytes(FONT_PATTERNS[char])
@@ -442,8 +445,9 @@ def generate_beautiful_font_data():
             else:
                 # 最後の手段：空のフォント
                 all_font_data.extend([0] * 15)
-    
+
     return tuple(all_font_data), tuple(font_table)
+
 
 # データ生成
 lite_font_data, lite_font_table = generate_beautiful_font_data()

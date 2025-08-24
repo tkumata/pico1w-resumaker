@@ -163,7 +163,7 @@ async def start_display_cycle():
             display_on_func()
         show_cached_qr()
 
-        # 10秒待機
+        # 10秒維持
         for _ in range(100):  # 10秒 = 100 * 0.1秒
             if not display_cycle_running:
                 return
