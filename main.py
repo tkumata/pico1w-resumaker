@@ -5,9 +5,7 @@ import secrets
 from storage import Storage
 from web import WebServer
 
-import gc
 import network
-import sys
 import uasyncio as asyncio
 
 
@@ -34,26 +32,6 @@ web_server = WebServer(storage)
 # dns_server = DNSServer(ip=ap.ifconfig()[0])
 
 
-def unload_modules():
-    TARGET_MODULES = (
-        "lib.ssd1351",
-        "lib.uQR",
-        "litefont",
-    )
-
-    for name in dir(display):
-        attr = getattr(display, name)
-        modname = getattr(attr, "__module__", "")
-        if modname in TARGET_MODULES:
-            delattr(display, name)
-
-    for mod in TARGET_MODULES:
-        sys.modules.pop(mod, None)
-    sys.modules.pop("framebuf", None)
-
-    gc.collect()
-
-
 async def main():
     ip = ap.ifconfig()[0]
     # display.show_ap_info(ip)
@@ -64,15 +42,13 @@ async def main():
     # check memory
     # print("Before Memory Free:", gc.mem_free() / 1024, "KB")
 
-    # unload unnecessary modules
-    unload_modules()
-
     # check memory
     # print("After Memory Free:", gc.mem_free() / 1024, "KB")
 
-    # start servers
+    # start servers and display cycle
     await asyncio.gather(
         web_server.start(),
+        display.start_display_cycle(),
         # dns_server.start(),
     )
 

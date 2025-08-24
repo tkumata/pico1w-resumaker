@@ -1,6 +1,8 @@
 from machine import Pin, SPI
 from lib.ssd1351 import SSD1351
 from lib.uQR import QRCode
+import sys
+import gc
 
 import secrets
 
@@ -21,6 +23,11 @@ cs = Pin(20, Pin.OUT)
 rst = Pin(17, Pin.OUT)
 
 display = SSD1351(128, 128, spi, dc, cs, rst)
+
+# QR コードキャッシュと OLED 制御用の変数
+qr_cache = None
+display_on = True
+display_cycle_running = False
 
 
 def init_display():
@@ -45,13 +52,27 @@ def show_ap_info(ip):
 
 
 def show_qr_code(ip, ssid, passwd):
+    global qr_cache
+
+    # QR コードをキャッシュから使用、または新規生成
+    if qr_cache is None:
+        qr = QRCode(version=3)
+        qr.add_data(
+            "WIFI:S:{};T:WPA;P:{};;URL:http://{}".format(ssid, passwd, ip), 0)
+        matrix = qr.get_matrix()
+
+        # QR コードマトリックスをキャッシュ
+        qr_cache = {
+            'matrix': matrix,
+            'ip': ip
+        }
+
+        # QR モジュールを unload
+        unload_modules()
+
     display.fill(COLORS["WHITE"])
 
-    qr = QRCode(version=3)
-    qr.add_data(
-        "WIFI:S:{};T:WPA;P:{};;URL:http://{}".format(ssid, passwd, ip), 0)
-
-    matrix = qr.get_matrix()
+    matrix = qr_cache['matrix']
     scale = 3
 
     for y in range(len(matrix)):  # type: ignore
@@ -59,7 +80,8 @@ def show_qr_code(ip, ssid, passwd):
             if matrix[y][x]:  # type: ignore
                 display.fill_rect(x * scale, y * scale,
                                   scale, scale, COLORS["BLACK"])
-    display.text("IP:{}".format(ip), 0, 120, COLORS["BLACK"], size=1)
+    display.text("IP: {}".format(
+        qr_cache['ip']), 0, 120, COLORS["BLACK"], size=1)
     display.show()
 
 
@@ -71,3 +93,95 @@ def text(text, x, y, color, size=1):
 def clear():
     display.fill(0)
     display.show()
+
+
+def unload_modules():
+    TARGET_MODULES = (
+        # "lib.ssd1351",
+        "lib.uQR",
+        "litefont",
+    )
+
+    for name in dir(display):
+        attr = getattr(display, name)
+        modname = getattr(attr, "__module__", "")
+        if modname in TARGET_MODULES:
+            delattr(display, name)
+
+    for mod in TARGET_MODULES:
+        sys.modules.pop(mod, None)
+    sys.modules.pop("framebuf", None)
+
+    gc.collect()
+
+
+def display_off():
+    """OLED ディスプレイを OFF にする"""
+    global display_on
+    display.write_cmd(0xAE)  # SSD1351_CMD_DISPLAYOFF
+    display_on = False
+
+
+def display_on_func():
+    """OLED ディスプレイを ON にする"""
+    global display_on
+    display.write_cmd(0xAF)  # SSD1351_CMD_DISPLAYON
+    display_on = True
+
+
+def show_cached_qr():
+    """キャッシュされた QR コードを表示"""
+    global qr_cache
+
+    if qr_cache is None:
+        return
+
+    display.fill(COLORS["WHITE"])
+
+    matrix = qr_cache['matrix']
+    scale = 3
+
+    for y in range(len(matrix)):  # type: ignore
+        for x in range(len(matrix[0])):  # type: ignore
+            if matrix[y][x]:  # type: ignore
+                display.fill_rect(x * scale, y * scale,
+                                  scale, scale, COLORS["BLACK"])
+    display.text("IP: {}".format(
+        qr_cache['ip']), 0, 120, COLORS["BLACK"], size=1)
+    display.show()
+
+
+async def start_display_cycle():
+    """OLED ON/OFF サイクルを開始（10秒ON、5秒OFF）"""
+    import uasyncio as asyncio
+    global display_cycle_running
+    display_cycle_running = True
+
+    while display_cycle_running:
+        # 10秒間 ON
+        if not display_on:
+            display_on_func()
+        show_cached_qr()
+
+        # 10秒維持
+        for _ in range(100):  # 10秒 = 100 * 0.1秒
+            if not display_cycle_running:
+                return
+            await asyncio.sleep_ms(100)
+
+        # 5秒間 OFF
+        display_off()
+
+        # 5秒待機
+        for _ in range(50):   # 5秒 = 50 * 0.1秒
+            if not display_cycle_running:
+                return
+            await asyncio.sleep_ms(100)
+
+
+def stop_display_cycle():
+    """OLED ON/OFF サイクルを停止"""
+    global display_cycle_running
+    display_cycle_running = False
+    if not display_on:
+        display_on_func()
