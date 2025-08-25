@@ -28,6 +28,5 @@
     "**/*.bak",
     "**/*.md"
   ],
-  "micropico.manualComDevice": "/dev/tty.usbmodem113201",
-  "micropico.softResetAfterUpload": true
+  "micropico.manualComDevice": "/dev/tty.usbmodem113201"
 }

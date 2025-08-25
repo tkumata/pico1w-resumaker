@@ -34,16 +34,9 @@ web_server = WebServer(storage)
 
 async def main():
     ip = ap.ifconfig()[0]
-    # display.show_ap_info(ip)
 
     # Show QR code with Wi-Fi credentials
     display.show_qr_code(ip, secrets.SSID, secrets.PASSWORD)
-
-    # check memory
-    # print("Before Memory Free:", gc.mem_free() / 1024, "KB")
-
-    # check memory
-    # print("After Memory Free:", gc.mem_free() / 1024, "KB")
 
     # start servers and display cycle
     await asyncio.gather(
