@@ -115,7 +115,7 @@ def unload_modules():
     gc.collect()
 
 
-def display_off():
+def display_off_func():
     """OLED ディスプレイを OFF にする"""
     global display_on
     display.write_cmd(0xAE)  # SSD1351_CMD_DISPLAYOFF
@@ -152,36 +152,26 @@ def show_cached_qr():
 
 
 async def start_display_cycle():
-    """OLED ON/OFF サイクルを開始（10秒ON、5秒OFF）"""
+    """OLED ON/OFF サイクルを開始（120 秒 ON、1 秒 OFF）"""
     import uasyncio as asyncio
     global display_cycle_running
     display_cycle_running = True
 
     while display_cycle_running:
-        # 10秒間 ON
         if not display_on:
             display_on_func()
         show_cached_qr()
 
-        # 10秒維持
-        for _ in range(100):  # 10秒 = 100 * 0.1秒
+        # 表示維持
+        for _ in range(1200):  # 120秒 = 1200 * 0.1秒
             if not display_cycle_running:
                 return
             await asyncio.sleep_ms(100)
 
-        # 5秒間 OFF
-        display_off()
+        display_off_func()
 
-        # 5秒待機
-        for _ in range(50):   # 5秒 = 50 * 0.1秒
+        # 非表示維持
+        for _ in range(10):   # 1秒 = 10 * 0.1秒
             if not display_cycle_running:
                 return
             await asyncio.sleep_ms(100)
-
-
-def stop_display_cycle():
-    """OLED ON/OFF サイクルを停止"""
-    global display_cycle_running
-    display_cycle_running = False
-    if not display_on:
-        display_on_func()
