@@ -82,8 +82,28 @@ class WebServer:
 
         except MemoryError as error:
             print("handle_client memory error:", error)
+            try:
+                await self.send_error(writer, "500 Internal Server Error", "Memory Error")
+            except Exception:
+                pass
+        except OSError as error:
+            print("handle_client I/O error:", error)
+            try:
+                await self.send_error(writer, "500 Internal Server Error", "File I/O Error")
+            except Exception:
+                pass
+        except ValueError as error:
+            print("handle_client value error:", error)
+            try:
+                await self.send_error(writer, "400 Bad Request", "Invalid Data")
+            except Exception:
+                pass
         except Exception as error:
             print("handle_client error:", error)
+            try:
+                await self.send_error(writer, "500 Internal Server Error", "Server Error")
+            except Exception:
+                pass
         finally:
             if writer:
                 await self.safe_close(writer)
@@ -194,6 +214,10 @@ class WebServer:
 
     async def _serve_file(self, writer, filepath):
         try:
+            # パストラバーサル対策: ".." を含むパスを拒否
+            if ".." in filepath or not filepath.startswith("www"):
+                return await self.send_error(writer, "403 Forbidden", "Access Denied")
+
             # ファイル拡張子を効率的に取得
             dot_pos = filepath.rfind('.')
             if dot_pos != -1:
