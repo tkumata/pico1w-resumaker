@@ -19,3 +19,4 @@ __pycache__/
 secrets.py
 lib/misakifont
 CLAUDE.md
+.claude

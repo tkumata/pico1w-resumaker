@@ -72,32 +72,47 @@ class Storage:
         gc.collect()
         self._safe_write_lines(self.simplehist_file, lines)
 
-    def read_jobhist(self):
+    def _read_csv_with_fields(self, filepath, field_names):
+        """
+        CSV ファイルを読み込む共通メソッド
+        field_names: フィールド名のタプル (例: ("job_no", "job_name", "job_description"))
+        """
         try:
-            with open(self.jobhist_file, "r") as file:
+            with open(filepath, "r") as file:
                 result = []
                 while True:
                     line = file.readline()
-                    if not line:  # End of file reached
+                    if not line:
                         break
                     line = line.strip()
                     if line:
-                        job_no, name, desc = line.split(",", 2)
-                        result.append({
-                            "job_no": int(job_no),
-                            "job_name": name,
-                            "job_description": desc
-                        })
+                        # 最後のフィールドにカンマが含まれることを想定
+                        values = line.split(",", len(field_names) - 1)
+                        entry = {}
+                        for i, field in enumerate(field_names):
+                            if field.endswith("_no"):
+                                entry[field] = int(values[i])
+                            else:
+                                entry[field] = values[i]
+                        result.append(entry)
                     del line
                 return result
-        except OSError:  # FileNotFoundError の代わりに OSError を使用
+        except OSError:
             return []
+
+    def read_jobhist(self):
+        return self._read_csv_with_fields(
+            self.jobhist_file,
+            ("job_no", "job_name", "job_description")
+        )
 
     def write_jobhist(self, data):
         with open(self.jobhist_file, "w") as file:
             for entry in data:
                 gc.collect()
-                file.write(f"{entry['job_no']},{entry['job_name']},")
+                # カンマを全角に変換してエスケープ
+                job_name = entry['job_name'].replace(",", "、")
+                file.write(f"{entry['job_no']},{job_name},")
                 lines = entry['job_description'].split('\n')
                 for i, line in enumerate(lines):
                     safe_line = line.replace(",", "、")
@@ -108,37 +123,19 @@ class Storage:
                 file.write("\n")
 
     def read_portrait(self):
-        try:
-            with open(self.portrait_file, "r") as file:
-                result = []
-                while True:
-                    line = file.readline()
-                    if not line:
-                        break
-                    line = line.strip()
-                    if line:
-                        (
-                            portrait_no,
-                            portrait_url,
-                            portrait_summary
-                        ) = line.split(",", 2)
-                        result.append({
-                            "portrait_no": int(portrait_no),
-                            "portrait_url": portrait_url,
-                            "portrait_summary": portrait_summary
-                        })
-                    del line
-                return result
-        except OSError:
-            return []
+        return self._read_csv_with_fields(
+            self.portrait_file,
+            ("portrait_no", "portrait_url", "portrait_summary")
+        )
 
     def write_portrait(self, data):
         with open(self.portrait_file, "w") as file:
             for entry in data:
-                portsummary = entry['portrait_summary'].replace("\n", "<br>")
+                portsummary = entry['portrait_summary'].replace("\n", "<br>").replace(",", "、")
+                porturlsafe = entry['portrait_url'].replace(",", "、")
                 file.write(
                     f"{entry['portrait_no']},"
-                    f"{entry['portrait_url']},"
+                    f"{porturlsafe},"
                     f"{portsummary}\n"
                 )
 

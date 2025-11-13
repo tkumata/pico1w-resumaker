@@ -147,8 +147,10 @@ async function uploadImage() {
 
 function reloadImage() {
   const img = document.getElementById("userImage");
+  // タイムスタンプを追加してキャッシュを強制的に無効化
+  const timestamp = new Date().getTime();
 
-  fetch("/image.jpg", { cache: "no-store" }) // ここも明示的に no-store
+  fetch(`/image.jpg?t=${timestamp}`, { cache: "no-store" })
     .then((res) => res.blob())
     .then((blob) => {
       const blobUrl = URL.createObjectURL(blob);
