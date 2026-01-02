@@ -4,7 +4,7 @@ import os
 import gc
 
 # バッファサイズを定数として定義
-BUFFER_SIZE = 256
+BUFFER_SIZE = 1024
 buffer_size = BUFFER_SIZE  # 後方互換性のため
 
 

@@ -21,35 +21,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const data = {
-      usr_name: form.usr_name.value,
-      usr_name_kana: form.usr_name_kana.value,
-      usr_gender: form.usr_gender.value,
-      usr_birthday: form.usr_birthday.value,
-      usr_age: form.usr_age.value,
-      usr_addr: form.usr_addr.value,
-      usr_phone: form.usr_phone.value,
-      usr_mobile: form.usr_mobile.value,
-      usr_email: form.usr_email.value,
-      usr_family: form.usr_family.value,
-      usr_licenses: form.usr_licenses.value,
-      usr_siboudouki: form.usr_siboudouki.value,
-      usr_hobby: form.usr_hobby.value,
-      usr_skill: form.usr_skill.value,
-      usr_access: form.usr_access.value,
-    };
-    await fetch("/admin/user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    alert("保存しました");
+    await saveUser();
   });
 });
 
+/**
+ * フォームからユーザー情報を収集してサーバーに保存する
+ */
 async function saveUser() {
   try {
     const form = document.getElementById("user-form");
+    if (!form) return;
+
     const data = {
       usr_name: form.usr_name.value,
       usr_name_kana: form.usr_name_kana.value,
@@ -67,6 +50,8 @@ async function saveUser() {
       usr_skill: form.usr_skill.value,
       usr_access: form.usr_access.value,
     };
+
+    console.log("Saving user data:", data);
     const response = await fetch("/admin/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

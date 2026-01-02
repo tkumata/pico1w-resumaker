@@ -18,5 +18,7 @@ __pycache__/
 .micropico
 secrets.py
 lib/misakifont
+AGENTS.md
 CLAUDE.md
 .claude
+GEMINI.md
