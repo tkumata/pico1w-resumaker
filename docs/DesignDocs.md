@@ -4,8 +4,8 @@
 | ---------- | ---------------- |
 | **Author** | Tomokatsu Kumata |
 | **Date**   | 2025-06-23       |
-| **Update** | 2025-07-10       |
-| **Status** | Writing          |
+| **Update** | 2026-01-02       |
+| **Status** | Implemented      |
 
 ## プロンプト
 
@@ -34,6 +34,7 @@ Raspberry Pi Pico W を用いて、履歴書の作成・編集・削除・共有
 - Web サーバとして以下の機能を提供：
   - 履歴書の作成、編集、削除
   - HTML/CSS で生成された履歴書の閲覧および共有
+  - 証明写真のアップロードと表示
 
 ## 目標
 
@@ -53,9 +54,10 @@ Raspberry Pi Pico W を用いて、履歴書の作成・編集・削除・共有
 
 - ユーザが Pico W の Wi-Fi アクセスポイントに接続し、ブラウザで以下の URL にアクセスすることで履歴書を閲覧・管理可能:
   - `http://192.168.4.1`: トップページ (履歴書)
-  - `http://192.168.4.1/admin/user`: ユーザプロフィール編集画面
+  - `http://192.168.4.1/admin/user`: ユーザプロフィール編集画面 (画像アップロード含む)
   - `http://192.168.4.1/admin/simplehist`: 学歴・職歴編集画面
   - `http://192.168.4.1/admin/jobhist`: 詳細職歴編集画面
+  - `http://192.168.4.1/admin/portrait`: ポートレイト編集画面
 
 ## 技術スタック
 
@@ -65,7 +67,7 @@ Raspberry Pi Pico W を用いて、履歴書の作成・編集・削除・共有
 - **SSD1351 OLED ディスプレイ**: Wi-Fi アクセスポイントの情報を表示 (解像度: 128x128 ドット)。
 - PIN は以下のとおり。
 
-```
+```python
 spi = SPI(0, baudrate=10000000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(19))
 dc = Pin(16, Pin.OUT)
 cs = Pin(20, Pin.OUT)
@@ -84,7 +86,7 @@ display = SSD1351(128, 128, spi, dc, cs, rst)
 ## 制約
 
 - ストレージ容量: 最大 2MB
-- 外部ライブラリ: 使用不可
+- 外部ライブラリ: 使用不可 (vendoring は可)
 - ディスプレイ: 128x128 ドットの解像度
 - Wi-Fi: アクセスポイントモードのみ (インターネット接続なし)
 
@@ -94,38 +96,41 @@ display = SSD1351(128, 128, spi, dc, cs, rst)
 
 - HTML, CSS, JavaScript で構築。
 - モダンなデザインを採用。
-- クリーンアーキテクチャを採用し、責務を分離。
+- `crud-base.js` を共通化し、CRUD 操作を簡素化。
 - 編集ページのフォームは複数行に対応し、動的に増減可能。
 - **ページ構成**:
   - トップページ (`/`): 履歴書表示
-  - ユーザプロフィール編集ページ (`/admin/user`): ユーザ情報編集
+  - ユーザプロフィール編集ページ (`/admin/user`): ユーザ情報編集・画像アップロード
   - 学歴・職歴編集ページ (`/admin/simplehist`): 学歴・職歴編集
   - 詳細職歴編集ページ (`/admin/jobhist`): 詳細職歴編集
+  - ポートレイト編集ページ (`/admin/portrait`): ポートレイト編集
+  - キャプティブポータル検出 (`/hotspot-detect.html`): 一部デバイス用
 
 ### バックエンド
 
 - MicroPython で構築。
-- Web サーバは、スレッドで動作。
-- クリーンアーキテクチャを採用し、責務を分離。
-- 既存のコードがあるため display.py は生成しない。
+- Web サーバは、`uasyncio` を使用した非同期処理。
+- クリーンアーキテクチャを意識しつつ、リソース制約に合わせて最適化。
+- ディスプレイ制御は `display.py` に分離。
 
 ### ディレクトリ構成
 
 ```text
 .
 ├── display.py             # OLED ディスプレイ制御
+├── dns.py                 # DNS サーバ (キャプティブポータル用)
 ├── data/                  # データ保存ディレクトリ
 │   ├── jobhist.csv        # 詳細職歴データ
 │   ├── simplehist.csv     # 学歴・職歴データ
+│   ├── portrait.csv       # ポートレイトデータ
 │   └── user.csv           # ユーザ基本情報
 ├── docs/                  # ドキュメント
-│   └── DesignDocs.md      # 本ドキュメント
+│   ├── DesignDocs.md      # 本ドキュメント
+│   └── pico1w-resumaker.jpg
 ├── lib/                   # ライブラリ
-│   ├── misakifont/        # フォント関連
-│   │   ├── misakifont.py
-│   │   ├── misakifontdata.py
-│   │   └── tma_jp_utl.py
-│   └── ssd1351.py         # OLED ディスプレイドライバ
+│   ├── ssd1351.py         # OLED ディスプレイドライバ
+│   ├── uQR.py             # QR コード生成
+│   └── litefont/          # フォント関連
 ├── main.py                # メインスクリプト
 ├── README.md              # プロジェクト概要
 ├── secrets.py             # 設定情報
@@ -133,13 +138,19 @@ display = SSD1351(128, 128, spi, dc, cs, rst)
 ├── web.py                 # Web サーバ実装
 └── www/                   # Web コンテンツ
     ├── index.html         # トップページ雛形
+    ├── index.js           # トップページスクリプト
     ├── user.html          # ユーザ情報ページ雛形
+    ├── user.js            # ユーザ情報スクリプト
     ├── simplehist.html    # 簡易職歴ページ雛形
+    ├── simplehist.js      # 学歴・職歴スクリプト
     ├── jobhist.html       # 詳細職歴ページ雛形
     ├── jobhist.js         # 詳細職歴スクリプト
-    ├── simplehist.js      # 学歴・職歴スクリプト
+    ├── portrait.html      # ポートレイトページ雛形
+    ├── portrait.js        # ポートレイトスクリプト
+    ├── crud-base.js       # CRUD 共通スクリプト
+    ├── hotspot-detect.html# キャプティブポータル検出用
     ├── style.css          # スタイルシート
-    └── user.js            # ユーザ情報スクリプト
+    └── image.jpg          # アップロードされた顔写真 (存在する場合)
 ```
 
 ## データモデル
@@ -148,23 +159,28 @@ display = SSD1351(128, 128, spi, dc, cs, rst)
 
 ### `user.csv` (ユーザ基本情報)
 
-| Column              | Format     | Content          |
-| ------------------- | ---------- | ---------------- |
-| `usr_name`          | string     | ユーザの名前     |
-| `usr_birthday`      | YYYY-MM-DD | 誕生日           |
-| `usr_addr`          | string     | 住所             |
-| `usr_phone`         | num        | 電話番号         |
-| `usr_mobile`        | num        | 携帯番号         |
-| `usr_email`         | string     | メールアドレス   |
-| `usr_family`        | 0 or 1     | 扶養家族の有無   |
-| `usr_licenses`      | string     | 免許・資格       |
-| `usr_siboudouki`    | string     | 志望動機         |
-| `usr_access` string | string     | 出社にかかる時間 |
+| Column            | Format     | Content          |
+| ----------------- | ---------- | ---------------- |
+| `usr_name`        | string     | ユーザの名前     |
+| `usr_name_kana`   | string     | ユーザの名前(かな)|
+| `usr_gender`      | 0 or 1     | 性別 (0:男, 1:女)|
+| `usr_birthday`    | YYYY-MM-DD | 誕生日           |
+| `usr_age`         | num        | 年齢             |
+| `usr_addr`        | string     | 住所             |
+| `usr_phone`       | num        | 電話番号         |
+| `usr_mobile`      | num        | 携帯番号         |
+| `usr_email`       | string     | メールアドレス   |
+| `usr_family`      | 0 or 1     | 扶養家族の有無   |
+| `usr_licenses`    | string     | 免許・資格       |
+| `usr_siboudouki`  | string     | 志望動機         |
+| `usr_hobby`       | string     | 趣味             |
+| `usr_skill`       | string     | 特技             |
+| `usr_access`      | string     | 出社にかかる時間 |
 
 **例**:
 
 ```csv
-kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,example@example.com,0,運転免許<br>○○資格<br>○○資格,志望動機を記述してる。<br>複数行で。,1時間
+kumata,くまた,0,1999-01-02,26,神奈川県川崎市...,090...,example@example.com,0,運転免許,志望動機...,趣味...,特技...,1時間
 ```
 
 ### `simplehist.csv` (学歴・職歴)
@@ -194,17 +210,15 @@ kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,
 | Column               | Format               | Content           |
 | -------------------- | -------------------- | ----------------- |
 | `job_no`             | int                  | sequential number |
-| `job_start_datetime` | YYYY-MM-DD           | begin date        |
-| `job_end_datetime`   | YYYY-MM-DD           | retire date       |
 | `job_name`           | string               | company name      |
 | `job_description`    | string (改行 `<br>`) | description       |
 
 **例**:
 
 ```csv
-1,1999-04-01,2002-01-31,株式会社xxx,これまでにやったこと。<br>- aaa<br>- bbb
-2,2002-03-01,2014-06-31,株式会社yyy,これまでにやったこと。<br>- aaa<br>- bbb
-3,2014-04-01,2025-01-31,株式会社zzz,これまでにやったこと。<br>- aaa<br>- bbb
+1,株式会社xxx,これまでにやったこと。<br>- aaa<br>- bbb
+2,株式会社yyy,これまでにやったこと。<br>- aaa<br>- bbb
+3,株式会社zzz,これまでにやったこと。<br>- aaa<br>- bbb
 ```
 
 ## `portrait.csv` (ポートレイト情報)
@@ -226,23 +240,30 @@ kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,
 
 ### Web ルーティング
 
-| Method    | URI                 | Summary                |
-| --------- | ------------------- | ---------------------- |
-| GET       | `/`                 | 履歴書トップページ     |
-| GET, POST | `/admin/user`       | ユーザ情報編集ページ   |
-| GET, POST | `/admin/simplehist` | 学歴・職歴編集ページ   |
-| GET, POST | `/admin/jobhist`    | 詳細職歴編集ページ     |
-| GET, POST | `/admin/portait`    | ポートレイト編集ページ |
+| Method    | URI                     | Summary                  |
+| --------- | ----------------------- | ------------------------ |
+| GET       | `/`                     | 履歴書トップページ       |
+| GET       | `/hotspot-detect.html`  | キャプティブポータル検出 |
+| GET, POST | `/admin/user`           | ユーザ情報編集ページ     |
+| GET, POST | `/admin/simplehist`     | 学歴・職歴編集ページ     |
+| GET, POST | `/admin/jobhist`        | 詳細職歴編集ページ       |
+| GET, POST | `/admin/portrait`       | ポートレイト編集ページ   |
+| GET       | `/api/user`             | ユーザ情報取得           |
+| GET       | `/api/simplehist`       | 学歴・職歴取得           |
+| GET       | `/api/jobhist`          | 詳細職歴取得             |
+| GET       | `/api/portrait`         | ポートレイト取得         |
+| POST      | `/api/upload`           | 画像アップロード         |
 
 - フロントエンドは JavaScript で構築し、モダンなデザインを採用。
 - 各編集ページ (`/admin/*`) は対応する CSV ファイルを編集可能。
+- `/api/upload` はチャンク分割アップロードに対応。
 
 ## 機能要件
 
 ### トップページ (`/`)
 
 - `user.csv`, `simplehist.csv`, `jobhist.csv` のデータが全て揃っている場合、履歴書を表示。
-- いずれかのファイルが空または存在しない場合、「データなし」メッセージを表示。
+- いずれかのファイルが空または存在しない場合、「データなし」メッセージを表示 (または一部表示)。
 - 各 API は CSV ファイルを読み取り JSON で返す。
 - フロントエンドは JSON を受け取り、履歴書デザインに整形する。
 
@@ -252,6 +273,7 @@ kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,
 
 - ユーザ情報の編集フォームを表示。
 - `user.csv` の全カラムに対応した入力フォームを提供。
+- 画像アップロード機能を提供 (プレビュー付き)。
 - `user.csv` を読み込み、フォームに規定値として代入。
 - 保存ボタンで `/admin/user` へ POST (画面遷移なし)。
 - POST 時に JSON で送信。
@@ -260,6 +282,11 @@ kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,
 #### POST 時
 
 - parse して CSV ファイルに保存
+
+#### 画像アップロード
+
+- `/api/upload` に対してチャンク分割してバイナリ送信。
+- サーバ側で結合し `image.jpg` として保存。
 
 ### 学歴・職歴編集ページ (`/admin/simplehist`)
 
@@ -300,6 +327,8 @@ kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,
 
 #### POST 時
 
+- parse して CSV ファイルに保存
+
 ## AI が生成すべき
 
 絶対に以下を生成すること。
@@ -317,3 +346,6 @@ kumata,1999-01-02,123-0012 神奈川県川崎市○○区△△市,,09012345678,
 - style.css
 - user.html
 - user.js
+- portrait.html
+- portrait.js
+- crud-base.js

@@ -144,3 +144,4 @@ Linux (Debian 系) の場合以下になると思います。
 - /api/jobhist: 職務経歴書を呼び出す・保存する API エンドポイント
 - /api/simplehist: 1 行単位の学歴・職歴を呼び出す・保存する API エンドポイント
 - /api/portrait: ポートレイト情報を呼び出す・保存する API エンドポイント
+- /api/upload: 証明写真をアップロードする API エンドポイント
