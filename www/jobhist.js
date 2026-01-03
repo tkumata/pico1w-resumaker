@@ -8,7 +8,7 @@ const jobhistManager = new CrudBase({
   renderItem: (entry, index) => {
     const escapedName = jobhistManager.escapeHtml(entry.job_name || "");
     const escapedDesc = jobhistManager.escapeHtml(
-      (entry.job_description || "").replace(/<br>/g, "\n")
+      entry.job_description || ""
     );
     return `
       <div class="entry">

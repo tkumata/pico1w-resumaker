@@ -50,10 +50,9 @@ class WebServer:
 
             if method == "POST" and content_length > 0:
                 if path == "/api/upload":
-                    body_bytes = await self.read_exact(reader, content_length)
+                    # Pass reader and length to handler for chunked processing
                     self.upload_headers = custom_headers
-                    body = body_bytes
-                    del body_bytes
+                    body = {"reader": reader, "content_length": content_length}
                 else:
                     try:
                         success = await self.write_temp_file(reader, content_length)
@@ -174,15 +173,6 @@ class WebServer:
             return method, path
         except ValueError:
             return None, None
-
-    async def read_exact(self, reader, total_length):
-        buffer = b""
-        while len(buffer) < total_length:
-            chunk = await reader.read(total_length - len(buffer))
-            if not chunk:
-                break
-            buffer += chunk
-        return buffer
 
     async def send_response_header(self, writer, status, content_type):
         header = (
@@ -311,10 +301,22 @@ class WebServer:
         filename = self.upload_headers.get("x-filename", "tmp.jpg")
         is_final = self.upload_headers.get(
             "x-final", "false").lower() == "true"
+        
+        # data is {"reader": reader, "content_length": content_length}
+        reader = data.get("reader")
+        content_length = data.get("content_length", 0)
 
         try:
             with open("/www/" + filename, "ab") as file_obj:
-                file_obj.write(data)
+                remaining = content_length
+                bufsize = buffer_size
+                while remaining > 0:
+                    chunk = await reader.read(min(bufsize, remaining))
+                    if not chunk:
+                        break
+                    file_obj.write(chunk)
+                    remaining -= len(chunk)
+                    gc.collect()
         except Exception as error:
             error_msg = ujson.dumps(
                 {"status": "error", "message": "Write Error: " + str(error)})
@@ -322,7 +324,13 @@ class WebServer:
 
         if is_final:
             try:
-                os.rename("/www/tmp.jpg", "/www/image.jpg")
+                # Remove existing file if it exists to ensure clean rename
+                try:
+                    os.remove("/www/image.jpg")
+                except OSError:
+                    pass
+                    
+                os.rename("/www/" + filename, "/www/image.jpg")
                 success_msg = ujson.dumps(
                     {"status": "success", "message": "Upload complete"})
                 return await self.send_chunked(writer, success_msg.encode())

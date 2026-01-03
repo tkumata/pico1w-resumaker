@@ -8,7 +8,7 @@ const portraitManager = new CrudBase({
   renderItem: (entry, index) => {
     const escapedUrl = portraitManager.escapeHtml(entry.portrait_url || "");
     const escapedSummary = portraitManager.escapeHtml(
-      (entry.portrait_summary || "").replace(/<br>/g, "\n")
+      entry.portrait_summary || ""
     );
     return `
       <div class="entry">

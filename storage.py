@@ -28,11 +28,15 @@ class Storage:
 
     def read_user(self):
         try:
-            lines = self._safe_open_lines(self.user_file)
-            if not lines or lines[0] == "":
-                return {}
-            return dict(zip(self.USER_KEYS, lines[0].split(",")))
-        except OSError:  # FileNotFoundError の代わりに OSError を使用
+            with open(self.user_file, "r") as f:
+                line = f.readline()
+                if not line:
+                    return {}
+                values = line.strip().split(",")
+                # <br> を \n に戻す
+                decoded_values = [v.replace("<br>", "\n") for v in values]
+                return dict(zip(self.USER_KEYS, decoded_values))
+        except OSError:
             return {}
 
     def write_user(self, data):
@@ -79,13 +83,14 @@ class Storage:
                         entry = {}
                         for i, field in enumerate(field_names):
                             if i < len(values):
+                                val = values[i].replace("<br>", "\n")
                                 if field.endswith("_no"):
                                     try:
-                                        entry[field] = int(values[i])
+                                        entry[field] = int(val)
                                     except ValueError:
                                         entry[field] = 0
                                 else:
-                                    entry[field] = values[i]
+                                    entry[field] = val
                             else:
                                 entry[field] = ""
                         result.append(entry)
@@ -126,13 +131,6 @@ class Storage:
         
         gc.collect()
         self._safe_write_lines(self.portrait_file, lines)
-
-    def _safe_open_lines(self, filepath):
-        try:
-            with open(filepath, "r") as file:
-                return file.read().strip().split("\n")
-        except OSError:
-            return []
 
     def _safe_write_lines(self, filepath, lines):
         with open(filepath, "w") as file:
