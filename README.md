@@ -8,8 +8,8 @@ Raspberry Pi Pico WH によるポータブル履歴書
 
 ## 概要
 
-- Pico WH を Wi-Fi STA で既存 Wi-Fi AP に接続する
-- Pico WH を Wi-Fi AP にする
+- Pico WH の Wi-Fi STA モードで、既存 Wi-Fi AP に接続する
+- Pico WH を新規 Wi-Fi AP にする
 - QR コード生成機能
   - OLED に QR コード表示
   - 焼き付き防止
@@ -30,25 +30,25 @@ Raspberry Pi Pico WH によるポータブル履歴書
 - 192.168.11.x からのアクセスで管理用リンクメニューを表示
 
 ```text
-+----+              +-----------------------------+              +--------+
-|    |              | Raspberry Pi Pico WH        |              | Phone  |
-| PC | -- Wi-Fi --> | 192.168.11.14   192.168.4.1 | <-- Wi-Fi -- | Tablet |
-|    |              | STA             AP          |              |        |
-+----+              +-----------------------------+              +--------+
-                    | Flash mem  |        |                          ^
-                    | (CSV data) | +--------------+                 /
-                    +------------+ | OLED SSD1351 |                / Scan QR code
-                                   | QR code      | --------------'
-                                   +--------------+
+        ┌─────────────────────────────┐
+        │ Raspberry Pi Pico WH        │  ┌────────┐
+┌────┐  ├─────────────────────────────┤  │ Phone  │
+│ PC │─▶︎│ 192.168.11.14   192.168.4.1 │◀︎─│ Tablet │
+└────┘  │ Wi-Fi STA       Wi-Fi AP    │  └────────┘
+        ├────────────┬────────┬───────┘       ▲
+        │ Flash mem  │ ┌──────┴───────┐       │
+        │ (CSV data) │ │ OLED SSD1351 ├───────┘
+        └────────────┘ │ QR code      │
+                       └──────────────┘
 ```
 
-## 用意するハードウェア
+## ハードウェア
 
-### Pico WH
+### Raspberry Pi Pico WH
 
 - [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) (≠ Pico2 WH)
 
-### OLED SSD1351
+### Waveshare 1.5inch RGB OLED SSD1351
 
 - [OLED SSD1351](https://www.waveshare.com/product/displays/lcd-oled/lcd-oled-3/1.5inch-rgb-oled-module.htm)
 
@@ -93,7 +93,7 @@ vi .vscode/settings.json
 | STA_SSID     | SSID of your home Wi-Fi           |
 | STA_PASSWORD | Wi-Fi password of your home Wi-Fi |
 
-.vscode/settings.json で TTY の指定をします。Mac (M4 Macbook Air macOS Sequoia) の場合以下になります。
+.vscode/settings.json で TTY の指定をします。Mac (M4 Macbook Air macOS Tahoe) の場合以下になります。
 
 ```json
 "micropico.manualComDevice": "/dev/tty.usbmodem113201",

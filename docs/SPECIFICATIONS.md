@@ -35,19 +35,19 @@ display = SSD1351(128, 128, spi, dc, cs, rst)
 
 ### Web Routing
 
-| Method    | URI                     | Summary                  |
-| --------- | ----------------------- | ------------------------ |
-| GET       | `/`                     | 履歴書トップページ       |
-| GET       | `/hotspot-detect.html`  | キャプティブポータル検出 |
-| GET, POST | `/admin/user`           | ユーザ情報編集ページ     |
-| GET, POST | `/admin/simplehist`     | 学歴・職歴編集ページ     |
-| GET, POST | `/admin/jobhist`        | 詳細職歴編集ページ       |
-| GET, POST | `/admin/portrait`       | ポートレイト編集ページ   |
-| GET       | `/api/user`             | ユーザ情報取得           |
-| GET       | `/api/simplehist`       | 学歴・職歴取得           |
-| GET       | `/api/jobhist`          | 詳細職歴取得             |
-| GET       | `/api/portrait`         | ポートレイト取得         |
-| POST      | `/api/upload`           | 画像アップロード         |
+| Method    | URI                    | Summary                  |
+| --------- | ---------------------- | ------------------------ |
+| GET       | `/`                    | 履歴書トップページ       |
+| GET       | `/hotspot-detect.html` | キャプティブポータル検出 |
+| GET, POST | `/admin/user`          | ユーザ情報編集ページ     |
+| GET, POST | `/admin/simplehist`    | 学歴・職歴編集ページ     |
+| GET, POST | `/admin/jobhist`       | 詳細職歴編集ページ       |
+| GET, POST | `/admin/portrait`      | ポートレイト編集ページ   |
+| GET       | `/api/user`            | ユーザ情報取得           |
+| GET       | `/api/simplehist`      | 学歴・職歴取得           |
+| GET       | `/api/jobhist`         | 詳細職歴取得             |
+| GET       | `/api/portrait`        | ポートレイト取得         |
+| POST      | `/api/upload`          | 画像アップロード         |
 
 - フロントエンドは JavaScript で構築し、モダンなデザインを採用。
 - 各編集ページ (`/admin/*`) は対応する CSV ファイルを編集可能。
@@ -59,23 +59,23 @@ display = SSD1351(128, 128, spi, dc, cs, rst)
 
 ### `user.csv` (ユーザ基本情報)
 
-| Column            | Format     | Content          |
-| ----------------- | ---------- | ---------------- |
-| `usr_name`        | string     | ユーザの名前     |
-| `usr_name_kana`   | string     | ユーザの名前(かな)|
-| `usr_gender`      | 0 or 1     | 性別 (0:男, 1:女)|
-| `usr_birthday`    | YYYY-MM-DD | 誕生日           |
-| `usr_age`         | num        | 年齢             |
-| `usr_addr`        | string     | 住所             |
-| `usr_phone`       | num        | 電話番号         |
-| `usr_mobile`      | num        | 携帯番号         |
-| `usr_email`       | string     | メールアドレス   |
-| `usr_family`      | 0 or 1     | 扶養家族の有無   |
-| `usr_licenses`    | string     | 免許・資格       |
-| `usr_siboudouki`  | string     | 志望動機         |
-| `usr_hobby`       | string     | 趣味             |
-| `usr_skill`       | string     | 特技             |
-| `usr_access`      | string     | 出社にかかる時間 |
+| Column           | Format     | Content            |
+| ---------------- | ---------- | ------------------ |
+| `usr_name`       | string     | ユーザの名前       |
+| `usr_name_kana`  | string     | ユーザの名前(かな) |
+| `usr_gender`     | 0 or 1     | 性別 (0:男, 1:女)  |
+| `usr_birthday`   | YYYY-MM-DD | 誕生日             |
+| `usr_age`        | num        | 年齢               |
+| `usr_addr`       | string     | 住所               |
+| `usr_phone`      | num        | 電話番号           |
+| `usr_mobile`     | num        | 携帯番号           |
+| `usr_email`      | string     | メールアドレス     |
+| `usr_family`     | 0 or 1     | 扶養家族の有無     |
+| `usr_licenses`   | string     | 免許・資格         |
+| `usr_siboudouki` | string     | 志望動機           |
+| `usr_hobby`      | string     | 趣味               |
+| `usr_skill`      | string     | 特技               |
+| `usr_access`     | string     | 出社にかかる時間   |
 
 **例**:
 
@@ -107,11 +107,11 @@ kumata,くまた,0,1999-01-02,26,神奈川県川崎市...,090...,example@example
 
 複数行保存可能。編集ページでフォームを動的に増減。
 
-| Column               | Format               | Content           |
-| -------------------- | -------------------- | ----------------- |
-| `job_no`             | int                  | sequential number |
-| `job_name`           | string               | company name      |
-| `job_description`    | string (改行 `<br>`) | description       |
+| Column            | Format               | Content           |
+| ----------------- | -------------------- | ----------------- |
+| `job_no`          | int                  | sequential number |
+| `job_name`        | string               | company name      |
+| `job_description` | string (改行 `<br>`) | description       |
 
 **例**:
 
