@@ -65,24 +65,3 @@
     ├── style.css          # スタイルシート
     └── image.jpg          # アップロードされた顔写真 (存在する場合)
 ```
-
-## AI Generation Prompt
-
-絶対に以下を生成すること。
-
-- main.py
-- secrets.py
-- storage.py
-- web.py
-- index.html
-- index.js
-- jobhist.html
-- jobhist.js
-- simplehist.html
-- simplehist.js
-- style.css
-- user.html
-- user.js
-- portrait.html
-- portrait.js
-- crud-base.js
