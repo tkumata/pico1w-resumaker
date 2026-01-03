@@ -4,8 +4,6 @@ Raspberry Pi Pico WH によるポータブル履歴書
 
 ![screenshot](./docs/pico1w-resumaker.jpg)
 
-詳細は、[DesignDocs](./docs/DesignDocs.md) 参照してください。
-
 ## 概要
 
 - Pico WH の Wi-Fi STA モードで、既存 Wi-Fi AP に接続する
