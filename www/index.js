@@ -166,8 +166,7 @@ function checkServerNetwork() {
 
 // ページロード時に実行
 document.addEventListener("DOMContentLoaded", function () {
-  const isAdminAccess = checkServerNetwork();
-  const notification = document.getElementById("admin-notification");
+  checkServerNetwork();
 });
 
 function recheckServerNetwork() {

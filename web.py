@@ -3,9 +3,7 @@ import ujson
 import os
 import gc
 
-# バッファサイズを定数として定義
 BUFFER_SIZE = 1024
-buffer_size = BUFFER_SIZE  # 後方互換性のため
 
 
 class WebServer:
@@ -122,7 +120,7 @@ class WebServer:
         try:
             with open(temp_path, "wb") as file_obj:
                 remaining = content_length
-                bufsize = buffer_size
+                bufsize = BUFFER_SIZE
                 while remaining > 0:
                     chunk = await reader.read(min(bufsize, remaining))
                     if not chunk:
@@ -189,7 +187,7 @@ class WebServer:
         await self.send_chunked(writer, error_data.encode())
 
     async def send_chunked(self, writer, data):
-        chunk_size = buffer_size
+        chunk_size = BUFFER_SIZE
         data_len = len(data)
         for i in range(0, data_len, chunk_size):
             end_pos = min(i + chunk_size, data_len)
@@ -233,7 +231,7 @@ class WebServer:
             mode = "rb" if is_binary else "r"
             with open(filepath, mode) as file_obj:
                 while True:
-                    chunk = file_obj.read(buffer_size)
+                    chunk = file_obj.read(BUFFER_SIZE)
                     if not chunk:
                         break
                     if is_binary:
@@ -309,7 +307,7 @@ class WebServer:
         try:
             with open("/www/" + filename, "ab") as file_obj:
                 remaining = content_length
-                bufsize = buffer_size
+                bufsize = BUFFER_SIZE
                 while remaining > 0:
                     chunk = await reader.read(min(bufsize, remaining))
                     if not chunk:

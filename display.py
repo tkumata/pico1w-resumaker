@@ -10,11 +10,7 @@ COLORS = {
     "BLACK": 0,
     "WHITE": 0xFFFF,
     "RED": 0xF800,
-    "GREEN": 0x07E0,
-    "BLUE": 0x001F,
-    "YELLOW": 0xFFE0,
     "CYAN": 0x07FF,
-    "MAGENTA": 0xF81F,
 }
 
 spi = SPI(0, baudrate=10000000, polarity=0, phase=0, sck=Pin(18), mosi=Pin(19))
