@@ -25,30 +25,147 @@ Raspberry Pi Pico WH によるポータブル履歴書
 - 外部ライブラリ使用不可
 - インターネット接続不可
 - HTTP リクエスト・レスポンスと `.csv` ファイルの読み書きなどあらゆるデータを chunk で処理
-- 192.168.11.x からのアクセスで管理用リンクメニューを表示
+- 192.168.xx.mm からのアクセスで管理用リンクメニューを表示
+
+ハード構成図:
 
 ```text
-                   ┌─────────────────────────────┐
-                   │ Raspberry Pi Pico WH        │
-┌───────────────┐  ├─────────────────────────────┤  ┌──────────────┐
-│ PC            │─▶︎│ 192.168.xx.yy   192.168.4.1 │◀︎─│ Phone/Tablet │
-│ 192.168.xx.zz │  │ Wi-Fi STA       Wi-Fi AP    │  │ 192.168.4.xz │
-└───────────────┘  ├────────────┬────────┬───────┘  └──────────────┘
-                   │ Flash mem  │ ┌──────┴───────┐       ▲
-                   │ (CSV data) │ │ OLED SSD1351 ├───────┘
-                   └────────────┘ │ QR code      │
-                                  └──────────────┘
+                          ┌─────────────────────────────┐
+                          │ Raspberry Pi Pico WH        │
+┌───────────────┐         ├─────────────────────────────┤         ┌────────────────┐
+│ Computer      ├─ HTTP ─▶︎│ 192.168.xx.nn   192.168.4.1 │◀︎─ HTTP ─┤ Other Computer │
+│ 192.168.xx.mm │         │ Wi-Fi STA       Wi-Fi AP    │         │ 192.168.4.ii   │
+└───────────────┘         ├────────────┬────────┬───────┘         └────────┬───────┘
+                          │ Flash mem  │ ┌──────┴───────┐                  │
+                          │ (CSV data) │ │ OLED SSD1351 │◀︎─────────────────┘
+                          └────────────┘ │ (QR code)    │        Camera scan
+                                         └──────────────┘
+```
+
+システム全体図:
+
+```text
+┌───────────────────────────────────────────────────────────┐
+│         Raspberry Pi Pico WH (RP2040 + CYW43)             │
+│                                                           │
+│ ┌────────────────┐        ┌──────────────┐                │
+│ │ OLED Display   │◀──────▶│ display.py   │                │
+│ │ (SSD1351 etc.) │        │  - UI render │                │
+│ └────────────────┘        └──────────────┘                │
+│                                                           │
+│ ┌───────────────────── Networking ──────────────────────┐ │
+│ │                                                       │ │
+│ │ (AP Mode)          (DNS captive)       (HTTP Server)  │ │
+│ │ ┌─────────────┐    ┌──────────────┐    ┌────────────┐ │ │
+│ │ │ CYW43 Wi-Fi │───▶│ dns.py       │───▶│ web.py     │ │ │
+│ │ │ SoftAP      │    │  - DNS reply │    │ - routes   │ │ │
+│ │ └─────────────┘    └──────────────┘    │ - static   │ │ │
+│ │                                        │ - API      │ │ │
+│ │                                        └─────┬──────┘ │ │
+│ │                                              ▼        │ │
+│ │                                    ┌────────────────┐ │ │
+│ │                                    │ www/           │ │ │
+│ │                                    │  - HTML/CSS/JS │ │ │
+│ │                                    └────────────────┘ │ │
+│ └───────────────────────────────────────────────────────┘ │
+│                                                           │
+│ ┌────────────────── Persistent Data ────────────────────┐ │
+│ │                                                       │ │
+│ │ ┌────────────┐        ┌──────────────┐                │ │
+│ │ │ Flash FS   │◀──────▶│ storage.py   │                │ │
+│ │ │ (LittleFS) │        │  - load/save │                │ │
+│ │ └────────────┘        └──────────────┘                │ │
+│ └───────────────────────────────────────────────────────┘ │
+│                                                           │
+│ ┌───────────────── Boot / Orchestration ────────────────┐ │
+│ │ main.py                                               │ │
+│ │  █ init HW (SPI/I2C/GPIO)                             │ │
+│ │  █ init Wi-Fi AP + DNS + HTTP                         │ │
+│ │  █ load config from storage                           │ │
+│ │  █ start loop / scheduler                             │ │
+│ └───────────────────────────────────────────────────────┘ │
+│ secrets.py  (credentials / config)                        │
+│ lib/        (vendor libs / drivers / helpers)             │
+└───────────────────────────────────────────────────────────┘
+
+Client Side (Smartphone / PC)
+┌───────────────────────────────────────────────────────────┐
+│ Wi-Fi connect to PicoW-AP → (captive portal) → Browser    │
+│ ┌────────────────┐         ┌────────────────────────────┐ │
+│ │ Wi-Fi settings │         │ Web UI (www/)              │ │
+│ └────────────────┘         │  - view resume / profile   │ │
+│                            │  - settings / edit data    │ │
+│                            └────────────────────────────┘ │
+└───────────────────────────────────────────────────────────┘
+```
+
+モジュール関連図:
+
+```text
+                        ┌───────────────────────┐
+                        │ main.py               │
+                        │  - entrypoint         │
+                        │  - init & wiring      │
+                        └───────────┬───────────┘
+                                    │
+         ┌──────────────────────────┼──────────────────────────┐
+         │                          │                          │
+         ▼                          ▼                          ▼
+┌──────────────────┐     ┌─────────────────────┐      ┌──────────────────┐
+│ web.py           │     │ dns.py              │      │ display.py       │
+│  - HTTP server   │     │  - DNS captive      │      │  - OLED render   │
+│  - routing       │     │  - redirect/resolve │      │  - status/UI     │
+└────────┬─────────┘     └─────────────────────┘      └──────────────────┘
+         │  uses
+         ▼
+┌────────────────────┐
+│ storage.py         │
+│  - load/save JSON? │
+│  - schema/version? │
+└────────┬───────────┘
+         │
+         ▼
+┌───────────────────┐
+│ Flash filesystem  │
+│ (LittleFS)        │
+└───────────────────┘
+
+Static assets
+┌────────────────────┐
+│ www/ (HTML/CSS/JS) │
+└────────────────────┘
+   ▲
+   └──────── web.py serves
+```
+
+リクエストシーケンス図 (CaptivePortal):
+
+```text
+[Phone/PC]                         [Pico WH]
+   │                                 │
+   │ Wi-Fi connect to AP             │
+   ├────────────────────────────────▶│  (CYW43 SoftAP)
+   │                                 │
+   │ DNS query (any domain)          │
+   ├────────────────────────────────▶│  dns.py: resolve ─▶ Pico IP
+   │                                 │
+   │ HTTP GET http://example.com/    │
+   ├────────────────────────────────▶│  web.py: route ─▶ redirect/UI
+   │                                 │
+   │ GET / (UI)                      │
+   ├────────────────────────────────▶│  web.py ─▶ serve www/index.html etc.
+   │                                 │
+   │ POST /api/... (update profile)  │
+   ├────────────────────────────────▶│  web.py ─▶ storage.py save ─▶ Flash
+   │                                 │
+   │                                 │  display.py refresh / show status
+   │                                 └───────────────▶ OLED
 ```
 
 ## ハードウェア
 
-### Raspberry Pi Pico WH
-
 - [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) (≠ Pico2 WH)
-
-### Waveshare 1.5inch RGB OLED SSD1351
-
-- [OLED SSD1351](https://www.waveshare.com/product/displays/lcd-oled/lcd-oled-3/1.5inch-rgb-oled-module.htm)
+- [Waveshare 1.5inch RGB OLED SSD1351](https://www.waveshare.com/product/displays/lcd-oled/lcd-oled-3/1.5inch-rgb-oled-module.htm)
 
 ### 配線
 
