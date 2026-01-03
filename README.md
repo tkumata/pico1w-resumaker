@@ -165,7 +165,7 @@ Static assets
 ## ハードウェア
 
 - [Raspberry Pi Pico WH](https://www.raspberrypi.com/products/raspberry-pi-pico/) (≠ Pico2 WH)
-- [Waveshare 1.5inch RGB OLED SSD1351](https://www.waveshare.com/product/displays/lcd-oled/lcd-oled-3/1.5inch-rgb-oled-module.htm)
+- [Waveshare 1.5inch RGB OLED SSD1351](https://www.waveshare.com/wiki/1.5inch_RGB_OLED_Module)
 
 ### 配線
 
