@@ -27,6 +27,7 @@
     "**/*.sample",
     "**/*.bak",
     "**/.claude",
+    "**/*.jpg",
     "**/*.md"
   ],
   "micropico.manualComDevice": "/dev/tty.usbmodem113201"

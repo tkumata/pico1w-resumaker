@@ -268,6 +268,8 @@ class WebServer:
                         if not first:
                             writer.write(b',')
                         values = line.split(",", len(keys) - 1)
+                        # <br> を \n に戻す
+                        values = [v.replace("<br>", "\n") for v in values]
                         record = {k: (int(v) if k.endswith("_no") else v)
                                   for k, v in zip(keys, values)}
                         await self.send_chunked(writer, ujson.dumps(record).encode() + b'\r\n')
@@ -342,8 +344,8 @@ class WebServer:
         return await self.send_chunked(writer, success_msg.encode())
 
     async def handle_index(self, method, data, writer):
-        if not all((self.storage.read_user(), self.storage.read_simplehist(), self.storage.read_jobhist())):
-            return await self.send_chunked(writer, b"Some csv are empty.")
+        if not self.storage.read_user():
+            return await self.send_chunked(writer, b"User data is empty. Please go to /admin/user")
         return await self.stream_file(writer, "www/index.html")
 
     async def handle_hotspot_detect(self, method, data, writer):
