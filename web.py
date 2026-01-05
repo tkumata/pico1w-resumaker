@@ -7,6 +7,23 @@ import logger
 BUFFER_SIZE = 1024
 
 
+class RefuseHttpsServer:
+    async def start(self):
+        # 0.0.0.0:443 で待機し、接続が来たら即切断する
+        try:
+            _ = await asyncio.start_server(self.handle_client, "0.0.0.0", 443)
+        except OSError as e:
+            logger.error(f"Failed to bind 443: {e}")
+
+    async def handle_client(self, reader, writer):
+        # 何もせず即閉じる (TCP RST/FIN 相当の挙動を期待)
+        try:
+            writer.close()
+            await writer.wait_closed()
+        except Exception:
+            pass
+
+
 class WebServer:
     def __init__(self, storage):
         self.upload_headers = {}
@@ -45,6 +62,40 @@ class WebServer:
             # Expect: 100-continue を確認し、レスポンスを返す
             if expect_continue:
                 await self.send_continue(writer)
+
+            # --- Captive Portal Logic ---
+            # Check Host header and Path to detect captive portal probes
+            host = custom_headers.get('host', '').split(':')[0]
+            my_ip = "192.168.4.1"
+
+            # Common captive portal detection paths
+            # Android: /generate_204, /gen_204
+            # Windows: /ncsi.txt
+            # iOS/macOS: /hotspot-detect.html (though we also have a route for this)
+            captive_paths = ["/generate_204", "/gen_204",
+                             "/ncsi.txt", "/hotspot-detect.html"]
+
+            should_redirect = False
+
+            # Check if host is a domain name (contains letters) -> Redirect
+            # If it's an IP (e.g. 192.168.10.5 or 192.168.4.1), allow it.
+            is_ip = True
+            if host:
+                parts = host.split('.')
+                for p in parts:
+                    if not p.isdigit():
+                        is_ip = False
+                        break
+
+            if host and not is_ip:
+                should_redirect = True
+            # Redirect specific connectivity check paths
+            elif path in captive_paths:
+                should_redirect = True
+
+            if should_redirect:
+                return await self.send_redirect(writer, f"http://{my_ip}/")
+            # ---------------------------
 
             body = None
 
@@ -165,7 +216,7 @@ class WebServer:
                     content_length = int(line_str.split(":", 1)[1].strip())
                 elif line_str.lower().startswith("expect: 100-continue"):
                     expect_continue = True
-                elif line_str.lower().startswith(("x-filename:", "x-final:")):
+                elif line_str.lower().startswith(("x-filename:", "x-final:", "host:")):
                     key, value = line_str.split(":", 1)
                     custom_headers[key.strip().lower()] = value.strip()
             except (UnicodeError, ValueError):
@@ -192,6 +243,15 @@ class WebServer:
         await self.send_response_header(writer, status, "application/json")
         error_data = ujson.dumps({"status": "error", "message": message})
         await self.send_chunked(writer, error_data.encode())
+
+    async def send_redirect(self, writer, location):
+        header = (
+            f"HTTP/1.1 302 Found\r\n"
+            f"Location: {location}\r\n"
+            f"Connection: close\r\n\r\n"
+        ).encode()
+        writer.write(header)
+        await writer.drain()
 
     async def send_chunked(self, writer, data):
         chunk_size = BUFFER_SIZE
@@ -308,7 +368,7 @@ class WebServer:
         filename = self.upload_headers.get("x-filename", "tmp.jpg")
         is_final = self.upload_headers.get(
             "x-final", "false").lower() == "true"
-        
+
         # data is {"reader": reader, "content_length": content_length}
         reader = data.get("reader")
         content_length = data.get("content_length", 0)
@@ -337,7 +397,7 @@ class WebServer:
                     os.remove("/www/image.jpg")
                 except OSError:
                     pass
-                    
+
                 os.rename("/www/" + filename, "/www/image.jpg")
                 success_msg = ujson.dumps(
                     {"status": "success", "message": "Upload complete"})

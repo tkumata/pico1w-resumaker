@@ -19,7 +19,7 @@ class DNSServer:
         poller.register(self.sock, uselect.POLLIN)
 
         while True:
-            events = poller.poll(1000)  # timeout = 1000ms
+            events = poller.poll(0)  # timeout = 0 (non-blocking)
             for sock, event in events:
                 if event & uselect.POLLIN:
                     try:

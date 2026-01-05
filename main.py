@@ -1,8 +1,8 @@
 import secrets
 
-# from dns import DNSServer
+from dns import DNSServer
 from storage import Storage
-from web import WebServer
+from web import WebServer, RefuseHttpsServer
 from display import DisplayController
 
 import network
@@ -27,9 +27,10 @@ storage = Storage()
 
 # Initialize web server
 web_server = WebServer(storage)
+refuse_server = RefuseHttpsServer()
 
 # Initialize dns server
-# dns_server = DNSServer(ip=ap.ifconfig()[0])
+dns_server = DNSServer(ip=ap.ifconfig()[0])
 
 
 async def main():
@@ -41,8 +42,9 @@ async def main():
     # start servers and display cycle
     await asyncio.gather(
         web_server.start(),
+        refuse_server.start(),
         display_controller.start_display_cycle(),
-        # dns_server.start(),
+        dns_server.start(),
     )
 
 # Run async main
