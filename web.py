@@ -2,10 +2,9 @@ import uasyncio as asyncio
 import ujson
 import os
 import gc
+import logger
 
-# バッファサイズを定数として定義
-BUFFER_SIZE = 256
-buffer_size = BUFFER_SIZE  # 後方互換性のため
+BUFFER_SIZE = 1024
 
 
 class WebServer:
@@ -19,6 +18,7 @@ class WebServer:
             "/admin/simplehist": self.handle_simplehist,
             "/admin/jobhist": self.handle_jobhist,
             "/admin/portrait": self.handle_portrait,
+            "/admin/log": self.handle_admin_log,
             "/api/user": self.handle_api_user,
             "/api/simplehist": self.handle_api_simplehist,
             "/api/jobhist": self.handle_api_jobhist,
@@ -50,10 +50,9 @@ class WebServer:
 
             if method == "POST" and content_length > 0:
                 if path == "/api/upload":
-                    body_bytes = await self.read_exact(reader, content_length)
+                    # Pass reader and length to handler for chunked processing
                     self.upload_headers = custom_headers
-                    body = body_bytes
-                    del body_bytes
+                    body = {"reader": reader, "content_length": content_length}
                 else:
                     try:
                         success = await self.write_temp_file(reader, content_length)
@@ -65,14 +64,18 @@ class WebServer:
                     except (UnicodeError, ValueError):
                         return await self.send_error(writer, "400 Bad Request", "JSON Decode Error")
 
-            if method == "GET" and path in self.routes and path.startswith("/admin"):
+            if method == "GET" and path in self.routes and path.startswith("/admin") and path != "/admin/log":
                 return await self.serve_admin_static(writer, path)
             elif method == "GET" and path in ("/api/jobhist", "/api/portrait"):
                 return await self.serve_csv_as_json(writer, path)
             elif path in self.routes:
                 handler = self.routes[path]
-                content_type = "application/json" if path.startswith(
-                    "/api/") else "text/html"
+                if path.startswith("/api/"):
+                    content_type = "application/json"
+                elif path == "/admin/log":
+                    content_type = "text/plain"
+                else:
+                    content_type = "text/html"
                 await self.send_response_header(writer, "200 OK", content_type)
                 await handler(method, body, writer)
             else:
@@ -81,25 +84,26 @@ class WebServer:
             del body
 
         except MemoryError as error:
-            print("handle_client memory error:", error)
+            logger.error("handle_client memory error: {}".format(error))
+            gc.collect()
             try:
-                await self.send_error(writer, "500 Internal Server Error", "Memory Error")
+                await self.send_error(writer, "503 Service Unavailable", "Memory Error")
             except Exception:
                 pass
         except OSError as error:
-            print("handle_client I/O error:", error)
+            logger.error("handle_client I/O error: {}".format(error))
             try:
                 await self.send_error(writer, "500 Internal Server Error", "File I/O Error")
             except Exception:
                 pass
         except ValueError as error:
-            print("handle_client value error:", error)
+            logger.error("handle_client value error: {}".format(error))
             try:
-                await self.send_error(writer, "400 Bad Request", "Invalid Data")
+                await self.send_error(writer, "400 Bad Request", "")
             except Exception:
                 pass
         except Exception as error:
-            print("handle_client error:", error)
+            logger.error("handle_client error: {}".format(error))
             try:
                 await self.send_error(writer, "500 Internal Server Error", "Server Error")
             except Exception:
@@ -123,7 +127,7 @@ class WebServer:
         try:
             with open(temp_path, "wb") as file_obj:
                 remaining = content_length
-                bufsize = buffer_size
+                bufsize = BUFFER_SIZE
                 while remaining > 0:
                     chunk = await reader.read(min(bufsize, remaining))
                     if not chunk:
@@ -132,7 +136,7 @@ class WebServer:
                     remaining -= len(chunk)
             return True
         except OSError as error:
-            print("[write] Error:", error)
+            logger.error("[write] Error: {}".format(error))
             return False
 
     def load_json_from_file(self, temp_path="temp.json"):
@@ -140,7 +144,7 @@ class WebServer:
             with open(temp_path, "r") as file_obj:
                 return ujson.load(file_obj)
         except Exception as error:
-            print("Error parsing JSON file:", error)
+            logger.error("Error parsing JSON file: {}".format(error))
             return None
 
     async def parse_headers_optimized(self, reader):
@@ -175,15 +179,6 @@ class WebServer:
         except ValueError:
             return None, None
 
-    async def read_exact(self, reader, total_length):
-        buffer = b""
-        while len(buffer) < total_length:
-            chunk = await reader.read(total_length - len(buffer))
-            if not chunk:
-                break
-            buffer += chunk
-        return buffer
-
     async def send_response_header(self, writer, status, content_type):
         header = (
             f"HTTP/1.1 {status}\r\n"
@@ -199,7 +194,7 @@ class WebServer:
         await self.send_chunked(writer, error_data.encode())
 
     async def send_chunked(self, writer, data):
-        chunk_size = buffer_size
+        chunk_size = BUFFER_SIZE
         data_len = len(data)
         for i in range(0, data_len, chunk_size):
             end_pos = min(i + chunk_size, data_len)
@@ -243,7 +238,7 @@ class WebServer:
             mode = "rb" if is_binary else "r"
             with open(filepath, mode) as file_obj:
                 while True:
-                    chunk = file_obj.read(buffer_size)
+                    chunk = file_obj.read(BUFFER_SIZE)
                     if not chunk:
                         break
                     if is_binary:
@@ -280,6 +275,8 @@ class WebServer:
                         if not first:
                             writer.write(b',')
                         values = line.split(",", len(keys) - 1)
+                        # <br> を \n に戻す
+                        values = [v.replace("<br>", "\n") for v in values]
                         record = {k: (int(v) if k.endswith("_no") else v)
                                   for k, v in zip(keys, values)}
                         await self.send_chunked(writer, ujson.dumps(record).encode() + b'\r\n')
@@ -311,22 +308,42 @@ class WebServer:
         filename = self.upload_headers.get("x-filename", "tmp.jpg")
         is_final = self.upload_headers.get(
             "x-final", "false").lower() == "true"
+        
+        # data is {"reader": reader, "content_length": content_length}
+        reader = data.get("reader")
+        content_length = data.get("content_length", 0)
 
         try:
             with open("/www/" + filename, "ab") as file_obj:
-                file_obj.write(data)
+                remaining = content_length
+                bufsize = BUFFER_SIZE
+                while remaining > 0:
+                    chunk = await reader.read(min(bufsize, remaining))
+                    if not chunk:
+                        break
+                    file_obj.write(chunk)
+                    remaining -= len(chunk)
+                    gc.collect()
         except Exception as error:
+            logger.error("Upload write error: {}".format(error))
             error_msg = ujson.dumps(
                 {"status": "error", "message": "Write Error: " + str(error)})
             return await self.send_chunked(writer, error_msg.encode())
 
         if is_final:
             try:
-                os.rename("/www/tmp.jpg", "/www/image.jpg")
+                # Remove existing file if it exists to ensure clean rename
+                try:
+                    os.remove("/www/image.jpg")
+                except OSError:
+                    pass
+                    
+                os.rename("/www/" + filename, "/www/image.jpg")
                 success_msg = ujson.dumps(
                     {"status": "success", "message": "Upload complete"})
                 return await self.send_chunked(writer, success_msg.encode())
             except OSError as error:
+                logger.error("Upload rename error: {}".format(error))
                 error_msg = ujson.dumps(
                     {"status": "error", "message": "Failure Rename: " + str(error)})
                 return await self.send_chunked(writer, error_msg.encode())
@@ -336,8 +353,8 @@ class WebServer:
         return await self.send_chunked(writer, success_msg.encode())
 
     async def handle_index(self, method, data, writer):
-        if not all((self.storage.read_user(), self.storage.read_simplehist(), self.storage.read_jobhist())):
-            return await self.send_chunked(writer, b"Some csv are empty.")
+        if not self.storage.read_user():
+            return await self.send_chunked(writer, b"User data is empty. Please go to /admin/user")
         return await self.stream_file(writer, "www/index.html")
 
     async def handle_hotspot_detect(self, method, data, writer):
@@ -383,3 +400,17 @@ class WebServer:
 
     async def handle_api_portrait(self, method, data, writer):
         return await self.api_get_handler(method, self.storage.read_portrait, writer)
+
+    async def handle_admin_log(self, method, data, writer):
+        if method != "GET":
+            return await self.send_chunked(writer, b"Method not allowed")
+        try:
+            with open("/log.txt", "r") as file_obj:
+                while True:
+                    chunk = file_obj.read(BUFFER_SIZE)
+                    if not chunk:
+                        break
+                    writer.write(chunk.encode("utf-8"))
+                    await writer.drain()
+        except OSError:
+            pass

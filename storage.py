@@ -28,47 +28,39 @@ class Storage:
 
     def read_user(self):
         try:
-            lines = self._safe_open_lines(self.user_file)
-            if not lines or lines[0] == "":
-                return {}
-            return dict(zip(self.USER_KEYS, lines[0].split(",")))
-        except OSError:  # FileNotFoundError の代わりに OSError を使用
+            with open(self.user_file, "r") as f:
+                line = f.readline()
+                if not line:
+                    return {}
+                values = line.strip().split(",")
+                # <br> を \n に戻す
+                decoded_values = [v.replace("<br>", "\n") for v in values]
+                return dict(zip(self.USER_KEYS, decoded_values))
+        except OSError:
             return {}
 
     def write_user(self, data):
         values = [self._sanitize_value(key, data.get(key, ""))
                   for key in self.USER_KEYS]
-        self._safe_write_lines(self.user_file, [",".join(values)])
+        # user.csv の各フィールドからカンマを除去（または置換）
+        safe_values = [v.replace(",", "、") for v in values]
+        self._safe_write_lines(self.user_file, [",".join(safe_values)])
 
     def read_simplehist(self):
-        try:
-            lines = self._safe_open_lines(self.simplehist_file)
-            result = []
-            for line in lines:
-                if line:
-                    (
-                        hist_no,
-                        hist_datetime,
-                        hist_status,
-                        hist_name
-                    ) = line.split(",", 3)
-                    result.append({
-                        "hist_no": int(hist_no),
-                        "hist_datetime": hist_datetime,
-                        "hist_status": hist_status,
-                        "hist_name": hist_name
-                    })
-                    del line
-            del lines
-            return result
-        except OSError:  # FileNotFoundError の代わりに OSError を使用
-            return []
+        return self._read_csv_with_fields(
+            self.simplehist_file,
+            ("hist_no", "hist_datetime", "hist_status", "hist_name")
+        )
 
     def write_simplehist(self, data):
-        lines = [
-            f"{entry['hist_no']},{entry['hist_datetime']},{entry['hist_status']},{entry['hist_name']}"
-            for entry in data
-        ]
+        lines = []
+        for entry in data:
+            # カンマを置換してCSV構造を保護
+            datetime = str(entry['hist_datetime']).replace(",", "、")
+            status = str(entry['hist_status']).replace(",", "、")
+            name = str(entry['hist_name']).replace(",", "、")
+            lines.append(f"{entry['hist_no']},{datetime},{status},{name}")
+        
         gc.collect()
         self._safe_write_lines(self.simplehist_file, lines)
 
@@ -90,10 +82,17 @@ class Storage:
                         values = line.split(",", len(field_names) - 1)
                         entry = {}
                         for i, field in enumerate(field_names):
-                            if field.endswith("_no"):
-                                entry[field] = int(values[i])
+                            if i < len(values):
+                                val = values[i].replace("<br>", "\n")
+                                if field.endswith("_no"):
+                                    try:
+                                        entry[field] = int(val)
+                                    except ValueError:
+                                        entry[field] = 0
+                                else:
+                                    entry[field] = val
                             else:
-                                entry[field] = values[i]
+                                entry[field] = ""
                         result.append(entry)
                     del line
                 return result
@@ -107,20 +106,19 @@ class Storage:
         )
 
     def write_jobhist(self, data):
-        with open(self.jobhist_file, "w") as file:
+        if not data:
+            return
+
+        def iter_lines():
             for entry in data:
-                gc.collect()
-                # カンマを全角に変換してエスケープ
-                job_name = entry['job_name'].replace(",", "、")
-                file.write(f"{entry['job_no']},{job_name},")
-                lines = entry['job_description'].split('\n')
-                for i, line in enumerate(lines):
-                    safe_line = line.replace(",", "、")
-                    if i == len(lines) - 1:
-                        file.write(safe_line)
-                    else:
-                        file.write(safe_line + "<br>")
-                file.write("\n")
+                job_no = entry.get("job_no", 0)
+                job_name = str(entry.get("job_name", "")).replace(",", "、")
+                desc = str(entry.get("job_description", "")).replace(
+                    "\n", "<br>").replace(",", "、")
+                yield "{},{},{}".format(job_no, job_name, desc)
+
+        gc.collect()
+        self._safe_write_lines(self.jobhist_file, iter_lines())
 
     def read_portrait(self):
         return self._read_csv_with_fields(
@@ -129,26 +127,36 @@ class Storage:
         )
 
     def write_portrait(self, data):
-        with open(self.portrait_file, "w") as file:
-            for entry in data:
-                portsummary = entry['portrait_summary'].replace("\n", "<br>").replace(",", "、")
-                porturlsafe = entry['portrait_url'].replace(",", "、")
-                file.write(
-                    f"{entry['portrait_no']},"
-                    f"{porturlsafe},"
-                    f"{portsummary}\n"
-                )
-
-    def _safe_open_lines(self, filepath):
-        try:
-            with open(filepath, "r") as file:
-                return file.read().strip().split("\n")
-        except OSError:
-            return []
+        lines = []
+        for entry in data:
+            url = str(entry['portrait_url']).replace(",", "、")
+            summary = str(entry['portrait_summary']).replace("\n", "<br>").replace(",", "、")
+            lines.append(f"{entry['portrait_no']},{url},{summary}")
+        
+        gc.collect()
+        self._safe_write_lines(self.portrait_file, lines)
 
     def _safe_write_lines(self, filepath, lines):
-        with open(filepath, "w") as file:
-            file.write("\n".join(lines))
+        temp_path = filepath + ".tmp"
+        try:
+            with open(temp_path, "w") as file:
+                first = True
+                for line in lines:
+                    if not first:
+                        file.write("\n")
+                    file.write(line)
+                    first = False
+            try:
+                uos.remove(filepath)
+            except OSError:
+                pass
+            uos.rename(temp_path, filepath)
+        except Exception:
+            try:
+                uos.remove(temp_path)
+            except OSError:
+                pass
+            raise
 
     def _sanitize_value(self, key, value):
         if value is None:

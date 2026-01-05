@@ -19,33 +19,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     <div class="user-image">
       <img src="/image.jpg" alt="User" loading="lazy">
     </div>
-    <p><label>名前</label><span class="user-name">${user.usr_name} (${
+    <p><label>名前</label><span class="user-name">${escapeHTML(user.usr_name)} (${escapeHTML(
     user.usr_name_kana
-  })</span>
+  )})</span>
     </p>
-    <p><label>住所</label>${user.usr_addr}</p>
+    <p><label>住所</label>${escapeHTML(user.usr_addr)}</p>
     <div class="personal-block">
-      <p><label>電話番号</label>${user.usr_phone || "なし"}</p>
-      <p><label>携帯番号</label>${user.usr_mobile}</p>
-      <p><label>E メール</label>${user.usr_email}</p>
+      <p><label>電話番号</label>${escapeHTML(user.usr_phone || "なし")}</p>
+      <p><label>携帯番号</label>${escapeHTML(user.usr_mobile)}</p>
+      <p><label>E メール</label>${escapeHTML(user.usr_email)}</p>
     </div>
     <div class="personal-block">
-      <p><label>生年月日</label>${user.usr_birthday}</p>
-      <p><label>年齢</label>満${user.usr_age}歳</p>
+      <p><label>生年月日</label>${escapeHTML(user.usr_birthday)}</p>
+      <p><label>年齢</label>満${escapeHTML(user.usr_age)}歳</p>
       <p><label>性別</label>${user.usr_gender === "1" ? "女" : "男"}</p>
       <p><label>扶養家族</label>${user.usr_family === "1" ? "あり" : "なし"}</p>
     </div>
-    <p><label>免許・資格</label>${user.usr_licenses.replace(
-      /<br>/g,
+    <p><label>免許・資格</label>${escapeHTML(user.usr_licenses).replace(
+      /\n/g,
       "<br>"
     )}</p>
-    <p><label>特技</label>${user.usr_skill.replace(/<br>/g, "<br>")}</p>
-    <p><label>志望動機</label>${user.usr_siboudouki.replace(
-      /<br>/g,
+    <p><label>特技</label>${escapeHTML(user.usr_skill).replace(/\n/g, "<br>")}</p>
+    <p><label>志望動機</label>${escapeHTML(user.usr_siboudouki).replace(
+      /\n/g,
       "<br>"
     )}</p>
-    <p><label>通勤時間</label>${user.usr_access}</p>
-    <p><label>趣味</label>${user.usr_hobby.replace(/<br>/g, "<br>")}</p>
+    <p><label>通勤時間</label>${escapeHTML(user.usr_access)}</p>
+    <p><label>趣味</label>${escapeHTML(user.usr_hobby).replace(/\n/g, "<br>")}</p>
   `;
 
   simplehistInfo.innerHTML = `
@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     <ul>
       ${simplehist
         .map(
-          (h) => `<li>${h.hist_datetime} ${h.hist_status}: ${h.hist_name}</li>`
+          (h) => `<li>${escapeHTML(h.hist_datetime)} ${escapeHTML(h.hist_status)}: ${escapeHTML(h.hist_name)}</li>`
         )
         .join("")}
     </ul>
@@ -65,8 +65,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     ${jobhist
       .map(
         (j) => `
-          <h4>${j.job_name}</h4>
-          <p>${j.job_description.replace(/<br>/g, "<br>")}</p>
+          <h4>${escapeHTML(j.job_name)}</h4>
+          <p>${escapeHTML(j.job_description).replace(/\n/g, "<br>")}</p>
         `
       )
       .join("")}
@@ -78,13 +78,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     ${portrait
       .map(
         (p) => `
-          <h5>${p.portrait_url}</h5>
-          <p>${p.portrait_summary.replace(/<br>/g, "<br>")}</p>
+          <h5>${escapeHTML(p.portrait_url)}</h5>
+          <p>${escapeHTML(p.portrait_summary).replace(/\n/g, "<br>")}</p>
         `
       )
       .join("")}
   `;
 });
+
+function escapeHTML(text) {
+  if (!text) return "";
+  return text.replace(/[&<>"']/g, function(match) {
+    const escape = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    };
+    return escape[match];
+  });
+}
 
 function getTodayFormatted() {
   const today = new Date();
@@ -152,8 +166,7 @@ function checkServerNetwork() {
 
 // ページロード時に実行
 document.addEventListener("DOMContentLoaded", function () {
-  const isAdminAccess = checkServerNetwork();
-  const notification = document.getElementById("admin-notification");
+  checkServerNetwork();
 });
 
 function recheckServerNetwork() {
