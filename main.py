@@ -1,9 +1,9 @@
-import display
 import secrets
 
 # from dns import DNSServer
 from storage import Storage
 from web import WebServer
+from display import DisplayController
 
 import network
 import uasyncio as asyncio
@@ -19,8 +19,8 @@ sta = network.WLAN(network.STA_IF)
 sta.active(True)
 sta.connect(secrets.STA_SSID, secrets.STA_PASSWORD)
 
-# SPI and OLED setup (assuming display.py exists)
-display.init_display()
+# SPI and OLED setup
+display_controller = DisplayController()
 
 # Initialize storage
 storage = Storage()
@@ -36,12 +36,12 @@ async def main():
     ip = ap.ifconfig()[0]
 
     # Show QR code with Wi-Fi credentials
-    display.show_qr_code(ip, secrets.SSID, secrets.PASSWORD)
+    display_controller.show_qr_code(ip, secrets.SSID, secrets.PASSWORD)
 
     # start servers and display cycle
     await asyncio.gather(
         web_server.start(),
-        display.start_display_cycle(),
+        display_controller.start_display_cycle(),
         # dns_server.start(),
     )
 

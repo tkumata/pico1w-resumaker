@@ -106,15 +106,19 @@ class Storage:
         )
 
     def write_jobhist(self, data):
-        lines = []
-        for entry in data:
-            # カンマを置換し、改行を<br>に変換
-            job_name = str(entry['job_name']).replace(",", "、")
-            desc = str(entry['job_description']).replace("\n", "<br>").replace(",", "、")
-            lines.append(f"{entry['job_no']},{job_name},{desc}")
-        
+        if not data:
+            return
+
+        def iter_lines():
+            for entry in data:
+                job_no = entry.get("job_no", 0)
+                job_name = str(entry.get("job_name", "")).replace(",", "、")
+                desc = str(entry.get("job_description", "")).replace(
+                    "\n", "<br>").replace(",", "、")
+                yield "{},{},{}".format(job_no, job_name, desc)
+
         gc.collect()
-        self._safe_write_lines(self.jobhist_file, lines)
+        self._safe_write_lines(self.jobhist_file, iter_lines())
 
     def read_portrait(self):
         return self._read_csv_with_fields(
@@ -133,8 +137,26 @@ class Storage:
         self._safe_write_lines(self.portrait_file, lines)
 
     def _safe_write_lines(self, filepath, lines):
-        with open(filepath, "w") as file:
-            file.write("\n".join(lines))
+        temp_path = filepath + ".tmp"
+        try:
+            with open(temp_path, "w") as file:
+                first = True
+                for line in lines:
+                    if not first:
+                        file.write("\n")
+                    file.write(line)
+                    first = False
+            try:
+                uos.remove(filepath)
+            except OSError:
+                pass
+            uos.rename(temp_path, filepath)
+        except Exception:
+            try:
+                uos.remove(temp_path)
+            except OSError:
+                pass
+            raise
 
     def _sanitize_value(self, key, value):
         if value is None:

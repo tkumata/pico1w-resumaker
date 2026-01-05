@@ -2,6 +2,7 @@ import uasyncio as asyncio
 import ujson
 import os
 import gc
+import logger
 
 BUFFER_SIZE = 1024
 
@@ -17,6 +18,7 @@ class WebServer:
             "/admin/simplehist": self.handle_simplehist,
             "/admin/jobhist": self.handle_jobhist,
             "/admin/portrait": self.handle_portrait,
+            "/admin/log": self.handle_admin_log,
             "/api/user": self.handle_api_user,
             "/api/simplehist": self.handle_api_simplehist,
             "/api/jobhist": self.handle_api_jobhist,
@@ -62,14 +64,18 @@ class WebServer:
                     except (UnicodeError, ValueError):
                         return await self.send_error(writer, "400 Bad Request", "JSON Decode Error")
 
-            if method == "GET" and path in self.routes and path.startswith("/admin"):
+            if method == "GET" and path in self.routes and path.startswith("/admin") and path != "/admin/log":
                 return await self.serve_admin_static(writer, path)
             elif method == "GET" and path in ("/api/jobhist", "/api/portrait"):
                 return await self.serve_csv_as_json(writer, path)
             elif path in self.routes:
                 handler = self.routes[path]
-                content_type = "application/json" if path.startswith(
-                    "/api/") else "text/html"
+                if path.startswith("/api/"):
+                    content_type = "application/json"
+                elif path == "/admin/log":
+                    content_type = "text/plain"
+                else:
+                    content_type = "text/html"
                 await self.send_response_header(writer, "200 OK", content_type)
                 await handler(method, body, writer)
             else:
@@ -78,25 +84,26 @@ class WebServer:
             del body
 
         except MemoryError as error:
-            print("handle_client memory error:", error)
+            logger.error("handle_client memory error: {}".format(error))
+            gc.collect()
             try:
-                await self.send_error(writer, "500 Internal Server Error", "Memory Error")
+                await self.send_error(writer, "503 Service Unavailable", "Memory Error")
             except Exception:
                 pass
         except OSError as error:
-            print("handle_client I/O error:", error)
+            logger.error("handle_client I/O error: {}".format(error))
             try:
                 await self.send_error(writer, "500 Internal Server Error", "File I/O Error")
             except Exception:
                 pass
         except ValueError as error:
-            print("handle_client value error:", error)
+            logger.error("handle_client value error: {}".format(error))
             try:
-                await self.send_error(writer, "400 Bad Request", "Invalid Data")
+                await self.send_error(writer, "400 Bad Request", "")
             except Exception:
                 pass
         except Exception as error:
-            print("handle_client error:", error)
+            logger.error("handle_client error: {}".format(error))
             try:
                 await self.send_error(writer, "500 Internal Server Error", "Server Error")
             except Exception:
@@ -129,7 +136,7 @@ class WebServer:
                     remaining -= len(chunk)
             return True
         except OSError as error:
-            print("[write] Error:", error)
+            logger.error("[write] Error: {}".format(error))
             return False
 
     def load_json_from_file(self, temp_path="temp.json"):
@@ -137,7 +144,7 @@ class WebServer:
             with open(temp_path, "r") as file_obj:
                 return ujson.load(file_obj)
         except Exception as error:
-            print("Error parsing JSON file:", error)
+            logger.error("Error parsing JSON file: {}".format(error))
             return None
 
     async def parse_headers_optimized(self, reader):
@@ -318,6 +325,7 @@ class WebServer:
                     remaining -= len(chunk)
                     gc.collect()
         except Exception as error:
+            logger.error("Upload write error: {}".format(error))
             error_msg = ujson.dumps(
                 {"status": "error", "message": "Write Error: " + str(error)})
             return await self.send_chunked(writer, error_msg.encode())
@@ -335,6 +343,7 @@ class WebServer:
                     {"status": "success", "message": "Upload complete"})
                 return await self.send_chunked(writer, success_msg.encode())
             except OSError as error:
+                logger.error("Upload rename error: {}".format(error))
                 error_msg = ujson.dumps(
                     {"status": "error", "message": "Failure Rename: " + str(error)})
                 return await self.send_chunked(writer, error_msg.encode())
@@ -391,3 +400,17 @@ class WebServer:
 
     async def handle_api_portrait(self, method, data, writer):
         return await self.api_get_handler(method, self.storage.read_portrait, writer)
+
+    async def handle_admin_log(self, method, data, writer):
+        if method != "GET":
+            return await self.send_chunked(writer, b"Method not allowed")
+        try:
+            with open("/log.txt", "r") as file_obj:
+                while True:
+                    chunk = file_obj.read(BUFFER_SIZE)
+                    if not chunk:
+                        break
+                    writer.write(chunk.encode("utf-8"))
+                    await writer.drain()
+        except OSError:
+            pass
