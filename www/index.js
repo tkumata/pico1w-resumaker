@@ -39,13 +39,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       /\n/g,
       "<br>"
     )}</p>
-    <p><label>特技</label>${escapeHTML(user.usr_skill).replace(/\n/g, "<br>")}</p>
-    <p><label>志望動機</label>${escapeHTML(user.usr_siboudouki).replace(
-      /\n/g,
-      "<br>"
-    )}</p>
+    <div><label>特技</label>${parseMarkdown(user.usr_skill)}</div>
+    <div><label>志望動機</label>${parseMarkdown(user.usr_siboudouki)}</div>
     <p><label>通勤時間</label>${escapeHTML(user.usr_access)}</p>
-    <p><label>趣味</label>${escapeHTML(user.usr_hobby).replace(/\n/g, "<br>")}</p>
+    <div><label>趣味</label>${parseMarkdown(user.usr_hobby)}</div>
   `;
 
   simplehistInfo.innerHTML = `
@@ -66,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       .map(
         (j) => `
           <h4>${escapeHTML(j.job_name)}</h4>
-          <p>${escapeHTML(j.job_description).replace(/\n/g, "<br>")}</p>
+          <div>${parseMarkdown(j.job_description)}</div>
         `
       )
       .join("")}
@@ -79,12 +76,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       .map(
         (p) => `
           <h5>${escapeHTML(p.portrait_url)}</h5>
-          <p>${escapeHTML(p.portrait_summary).replace(/\n/g, "<br>")}</p>
+          <div>${parseMarkdown(p.portrait_summary)}</div>
         `
       )
       .join("")}
   `;
 });
+
+function parseMarkdown(text) {
+  if (!text) return "";
+  if (typeof marked !== "undefined" && marked.parse) {
+    return marked.parse(text);
+  }
+  return escapeHTML(text).replace(/\n/g, "<br>");
+}
 
 function escapeHTML(text) {
   if (!text) return "";

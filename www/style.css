@@ -1,51 +1,209 @@
 /* ベーススタイル */
-*{font-family:serif;line-height:1.6}
-html{font-size:16px}
-@media only screen and (orientation:landscape) and (max-device-height:430px){html{font-size:14px}}
-body{margin:0;padding:20px;background-color:#f4f4f4}
+* {
+  font-family: serif;
+  line-height: 1.6;
+}
+html {
+  font-size: 16px;
+}
+@media only screen and (orientation: landscape) and (max-device-height: 430px) {
+  html {
+    font-size: 14px;
+  }
+}
+body {
+  margin: 0;
+  padding: 20px;
+  background-color: #f4f4f4;
+}
 
 /* レイアウト */
-.admin,.container{max-width:718px;padding:20px;margin:0 auto;background:white;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1)}
-.admin{display:none}
+.admin,
+.container {
+  max-width: 718px;
+  padding: 20px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.admin {
+  display: none;
+}
 
 /* タイポグラフィ */
-h1{font-size:32px;margin-bottom:10px;color:#333}
-h2,h3,h4,h5,h6{color:#f0f0f0;padding:0 5px;background-color:#999}
-h2{font-size:24px;margin-bottom:8px;background-color:#333}
-h3{font-size:20px;margin-bottom:6px}
-h4{font-size:18px;margin:5px 0}
-h5{font-size:16px;margin-bottom:2px}
-h6{font-size:14px;margin-bottom:1px}
-pre{background-color:#f8f8f8;padding:10px;border-radius:5px;overflow-x:auto;line-height:normal;font-family:monospace}
-#datetime{font-size:14px;text-align:right}
+h1 {
+  font-size: 32px;
+  margin-bottom: 10px;
+  color: #333;
+}
+h2,
+h3,
+h4 {
+  color: #f0f0f0;
+  padding: 0 5px;
+  background-color: #999;
+}
+h5,
+h6 {
+  color: #333333;
+}
+h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+  background-color: #333;
+}
+h3 {
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+h4 {
+  font-size: 18px;
+  margin: 5px 0;
+}
+h5 {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+h6 {
+  font-size: 14px;
+  margin-bottom: 1px;
+}
+pre {
+  background-color: #f8f8f8;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+  line-height: normal;
+  font-family: monospace;
+}
+#datetime {
+  font-size: 14px;
+  text-align: right;
+}
 
 /* フォーム */
-form{display:flex;flex-direction:column;gap:10px}
-label{display:flex;flex-direction:column;gap:5px}
-input,select,textarea{padding:8px;border:1px solid #ccc;border-radius:4px;line-height:1.6}
-textarea{resize:vertical}
-button{padding:10px;background-color:#007bff;color:white;border:none;border-radius:4px;cursor:pointer}
-button:hover{background-color:#0056b3}
-p{margin:0;padding:5px 0}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+input,
+select,
+textarea {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  line-height: 1.6;
+}
+textarea {
+  resize: vertical;
+}
+button {
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+button:hover {
+  background-color: #0056b3;
+}
+p {
+  margin: 0;
+  padding: 5px 0;
+}
 
 /* ユーザー情報 */
-#user-info label{padding:0 5px;font-weight:bold;font-size:16px;color:#fff;background-color:#555}
-.personal-block{display:flex;gap:10px;flex-wrap:wrap}
-.user-name{font-size:22px;font-weight:bold;color:#333}
-.user-image{width:200px;height:267px;float:right;margin:0 20px 20px 20px;border:1px solid #ddd;display:flex;justify-content:center;align-items:center}
-.user-image img{max-width:200px;max-height:267px;width:100%}
-.personal-info{padding:5px}
-.clear{clear:both}
+#user-info label {
+  padding: 0 5px;
+  font-weight: bold;
+  font-size: 16px;
+  color: #fff;
+  background-color: #555;
+}
+.personal-block {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.user-name {
+  font-size: 22px;
+  font-weight: bold;
+  color: #333;
+}
+.user-image {
+  width: 200px;
+  height: 267px;
+  float: right;
+  margin: 0 20px 20px 20px;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.user-image img {
+  max-width: 200px;
+  max-height: 267px;
+  width: 100%;
+}
+.personal-info {
+  padding: 5px;
+}
+.clear {
+  clear: both;
+}
 
 /* エントリー */
-.entry{border:1px solid #ddd;padding:10px;margin-bottom:1rem;border-radius:4px;align-items:flex-start;gap:1rem;flex-wrap:wrap}
-.entry label{display:flex;flex-direction:column;font-size:14px}
-.entry input[type="date"]{min-width:100px}
-.entry input[type="text"]{min-width:400px}
-.entry textarea{min-width:400px;height:300px}
-.entry button{padding:6px 10px;background-color:#d9534f;color:white;border:none;border-radius:4px;font-size:14px;cursor:pointer;height:fit-content}
-.entry button:hover{background-color:#c9302c}
+.entry {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.entry label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+.entry input[type="date"] {
+  min-width: 100px;
+}
+.entry input[type="text"] {
+  min-width: 400px;
+}
+.entry textarea {
+  min-width: 400px;
+  height: 300px;
+}
+.entry button {
+  padding: 6px 10px;
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  height: fit-content;
+}
+.entry button:hover {
+  background-color: #c9302c;
+}
 
 /* リンク */
-a{color:#007bff;text-decoration:none}
-a:hover{text-decoration:underline}
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}

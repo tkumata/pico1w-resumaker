@@ -294,17 +294,13 @@ class WebServer:
 
             await self.send_response_header(writer, "200 OK", content_type)
 
-            is_binary = file_extension in (".jpg", ".jpeg")
-            mode = "rb" if is_binary else "r"
-            with open(filepath, mode) as file_obj:
+            # Always serve files as binary to avoid encoding issues
+            with open(filepath, "rb") as file_obj:
                 while True:
                     chunk = file_obj.read(BUFFER_SIZE)
                     if not chunk:
                         break
-                    if is_binary:
-                        writer.write(chunk)
-                    else:
-                        writer.write(chunk.encode("utf-8"))
+                    writer.write(chunk)
                     await writer.drain()
         except OSError:
             await self.send_error(writer, "404 Not Found", "Not Found")
