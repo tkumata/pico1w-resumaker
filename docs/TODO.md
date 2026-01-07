@@ -1,40 +1,19 @@
-# リファクタリング計画
+# タスク管理 (TODO)
 
-本プロジェクトにおける主要なアンチパターン（例外の握りつぶし、グローバル変数の乱用）を解消するための実装タスクリスト。
+## キャプティブポータル実装
 
-## 1. 例外処理の適正化 (B: Broad Exception Handling)
+- [x] `main.py`: `DNSServer` の有効化 (インポート、初期化、start)。
+- [x] `web.py`: `handle_client` メソッド内にキャプティブポータル用のリダイレクトロジックを追加。
+  - Host ヘッダーチェックの実装。
+  - 特定パス (`/generate_204` 等) のリダイレクト実装。
+- [x] 動作確認: 実機 (iPhone, Android, PC) で Wi-Fi 接続時に自動的にページが開くか確認。
 
-### 設計方針
+## Markdown 対応
 
-- Logger クラスの作成: エラーログを Flash メモリ（`/log.txt`）に書き込む簡易モジュールを作成。
-- 特定例外のキャッチ: `MemoryError`, `OSError`, `ValueError` を個別に処理。
-- ログ閲覧機能: Web 管理画面からログを確認できる機能を追加。
-
-### タスク
-
-- [x] `lib/logger.py` の実装
-- [x] `web.py` のリファクタリング
-- [x] 管理用ログ閲覧ルートの追加
-
-## 2. 状態管理のカプセル化 (D: Global State Management)
-
-### 設計方針
-
-- `DisplayController` クラス: 全ての状態変数をインスタンス変数に持つ。
-- 責務の集約: 初期化、QR 生成、ON/OFF サイクル管理をメソッド化する。
-
-### タスク
-
-- [x] `display.py` の書き換え
-- [x] `main.py` の修正
-
-## 3. /admin/jobhist 保存時の安定化
-
-### 設計方針
-
-- 職務経歴保存を逐次書き込みでメモリ使用量を抑える。
-- 0 件保存要求は既存ファイルを保持する。
-
-### タスク
-
-- [x] `storage.py` の `write_jobhist` を修正
+- [x] ライブラリ導入: `marked.js` を `www/lib/` に配置。
+- [x] フロントエンド実装 (`index.js`): 対象項目の表示処理を Markdown パーサー経由に変更。
+  - 職務経歴 (`job_description`)
+  - ポートレイト (`portrait_summary`)
+  - 志望動機 (`usr_siboudouki`)
+  - 趣味 (`usr_hobby`)
+  - 特技 (`usr_skill`)
