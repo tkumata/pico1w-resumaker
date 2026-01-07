@@ -54,7 +54,7 @@ class DisplayController:
         if self.qr_cache is None:
             qr = QRCode(version=3)
             qr.add_data(
-                "WIFI:S:{};T:WPA;P:{};;URL:http://{}".format(ssid, passwd, ip), 0)
+                "WIFI:S:{};T:WPA;P:{};;".format(ssid, passwd), 0)
             matrix = qr.get_matrix()
 
             self.qr_cache = {
@@ -114,7 +114,7 @@ class DisplayController:
                 if matrix[y][x]:  # type: ignore
                     self.display.fill_rect(
                         x * scale, y * scale, scale, scale, COLORS["BLACK"])
-        self.display.text("IP: {}".format(
+        self.display.text("Open {}".format(
             self.qr_cache['ip']), 0, 120, COLORS["BLACK"], size=1)
         self.display.show()
 
