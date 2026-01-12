@@ -114,18 +114,10 @@ function getTodayFormatted() {
   return `${year}年${month}月${day}日 現在`;
 }
 
-function isInAdminNetwork(ip) {
-  const ipToNum = (ip) => {
-    return ip
-      .split(".")
-      .reduce((acc, octet) => (acc << 8) + parseInt(octet), 0);
-  };
-
-  const targetIp = ipToNum(ip);
-  const networkBase = ipToNum("192.168.11.0");
-  const subnetMask = 0xffffff00;
-
-  return (targetIp & subnetMask) === networkBase;
+function ipToNum(ip) {
+  return ip
+    .split(".")
+    .reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
 }
 
 // admin クラスの要素を表示/非表示にする関数
@@ -136,41 +128,49 @@ function toggleAdminElements(show) {
   });
 }
 
-function checkServerNetwork() {
+async function checkServerNetwork() {
   const currentHost = window.location.hostname;
-  const ipPattern =
-    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  const adminNetworks = [];
 
-  if (ipPattern.test(currentHost)) {
-    if (isInAdminNetwork(currentHost)) {
-      toggleAdminElements(true);
-      return true;
-    } else {
-      toggleAdminElements(false);
-      return false;
-    }
-  } else {
-    const adminHostPatterns = [/^192\.168\.11\.\d+$/];
+  // Default AP network
+  adminNetworks.push({
+    base: ipToNum("192.168.4.0"),
+    mask: ipToNum("255.255.255.0")
+  });
 
-    const isAdminHost = adminHostPatterns.some((pattern) => {
-      if (pattern instanceof RegExp) {
-        return pattern.test(currentHost);
+  try {
+    const res = await fetch("/api/network");
+    if (res.ok) {
+      const info = await res.json();
+      if (info.sta && info.sta.ip) {
+        const staIp = ipToNum(info.sta.ip);
+        const staMask = ipToNum(info.sta.netmask);
+        const staBase = staIp & staMask;
+        adminNetworks.push({
+          base: staBase,
+          mask: staMask
+        });
       }
-      return currentHost === pattern;
-    });
-
-    if (isAdminHost) {
-      toggleAdminElements(true);
-      return true;
-    } else {
-      toggleAdminElements(false);
-      return false;
     }
+  } catch (e) {
+    console.warn("Failed to fetch network info", e);
   }
+
+  const isIp = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(currentHost);
+
+  let isAdmin = false;
+
+  if (isIp) {
+    const hostNum = ipToNum(currentHost);
+    isAdmin = adminNetworks.some(net => (hostNum & net.mask) === net.base);
+  }
+
+  toggleAdminElements(isAdmin);
+  return isAdmin;
 }
 
 // ページロード時に実行
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
   checkServerNetwork();
 });
 
