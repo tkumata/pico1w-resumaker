@@ -1,8 +1,11 @@
 /* ベーススタイル */
 * {
+  box-sizing: border-box;
   font-family: serif;
   line-height: 1.6;
   color: #333;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 html {
   font-size: 16px;
@@ -16,6 +19,24 @@ body {
   margin: 0;
   padding: 20px;
   background-color: #f4f4f4;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 8px;
 }
 
 /* レイアウト */
@@ -72,6 +93,7 @@ pre {
   overflow-x: auto;
   line-height: normal;
   font-family: monospace;
+  max-width: 100%;
 }
 pre > code {
   font-family: monospace;
@@ -144,8 +166,8 @@ p {
   color: #333;
 }
 .user-image {
-  width: 200px;
-  height: 267px;
+  width: clamp(120px, 30vw, 200px);
+  height: clamp(160px, 40vw, 267px);
   float: right;
   margin: 0 20px 20px 20px;
   border: 1px solid #ddd;
@@ -154,9 +176,9 @@ p {
   align-items: center;
 }
 .user-image img {
-  max-width: 200px;
-  max-height: 267px;
   width: 100%;
+  max-width: clamp(120px, 30vw, 200px);
+  max-height: clamp(160px, 40vw, 267px);
 }
 .personal-info {
   padding: 5px;
@@ -184,10 +206,10 @@ p {
   min-width: 100px;
 }
 .entry input[type="text"] {
-  min-width: 400px;
+  width: 100%;
 }
 .entry textarea {
-  min-width: 400px;
+  width: 100%;
   height: 300px;
 }
 .entry button {
@@ -211,4 +233,18 @@ a {
 }
 a:hover {
   text-decoration: underline;
+}
+
+/* モバイル対応 */
+@media only screen and (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+  .container {
+    padding: 15px;
+  }
+  .user-image {
+    float: none;
+    margin: 0 auto 20px auto;
+  }
 }
