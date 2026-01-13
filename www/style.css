@@ -2,7 +2,6 @@
 * {
   box-sizing: border-box;
   font-family: serif;
-  line-height: 1.6;
   color: #333;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -10,12 +9,14 @@
 html {
   font-size: 16px;
 }
-@media only screen and (orientation: landscape) and (max-device-height: 430px) {
+/* @media only screen and (orientation: landscape) and (max-device-height: 430px) {
   html {
     font-size: 14px;
   }
-}
+} */
 body {
+  font-size: 1rem;
+  line-height: 1.7;
   margin: 0;
   padding: 20px;
   background-color: #f4f4f4;
@@ -80,7 +81,7 @@ h6 {
   font-family: sans-serif;
 }
 h5 {
-  margin: 10px 2px 2px 2px;
+  margin: 20px 2px 2px 2px;
 }
 h6 {
   font-size: 16px;
@@ -126,7 +127,7 @@ textarea {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 textarea {
   resize: vertical;
@@ -143,8 +144,7 @@ button:hover {
   background-color: #0056b3;
 }
 p {
-  margin: 0;
-  padding: 5px 0;
+  margin-block: 0 1em;
 }
 
 /* ユーザー情報 */
