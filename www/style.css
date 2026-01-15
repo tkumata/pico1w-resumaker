@@ -48,6 +48,18 @@ table td {
 .admin {
   display: none;
 }
+.admin ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+}
+.admin li:not(:last-child)::after {
+  content: "|";
+  margin: 0 10px;
+  color: #ccc;
+}
 
 /* タイポグラフィ */
 h1 {
@@ -153,10 +165,7 @@ pre > code {
   margin-top: 0;
   padding-top: 0;
 }
-.resume .section-title,
-.resume #simplehist-info h2,
-.resume #jobhist-info h2,
-.resume #portrait-info h2 {
+.resume .section-title {
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0 0 10px;
@@ -269,13 +278,18 @@ p {
   padding: 4px 0;
   margin: 0;
 }
-.resume #user-info label {
+.resume #user-info dt {
   min-width: 6.5em;
   padding: 0;
   font-weight: 600;
   font-size: 0.95rem;
   color: #333;
   background: none;
+}
+.resume #user-info dd {
+  margin: 0;
+  padding: 0;
+  flex: 1;
 }
 .resume #user-info .field-address {
   grid-column: 1 / -1;
@@ -306,7 +320,7 @@ p {
   padding: 6px 0 10px;
   border-bottom: 1px solid #bbb;
 }
-.resume #user-info .field-block label {
+.resume #user-info .field-block dt {
   display: block;
   margin-bottom: 4px;
 }

@@ -20,49 +20,60 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="user-image">
         <img src="/image.jpg" alt="User" loading="lazy">
       </div>
-      <p class="field field-name">
-        <label>名前</label>
-        <span class="user-name">${escapeHTML(user.usr_name)} (${escapeHTML(
+      <dl>
+        <div class="field field-name">
+          <dt>名前</dt>
+          <dd class="user-name">${escapeHTML(user.usr_name)} (${escapeHTML(
     user.usr_name_kana
-  )})</span>
-      </p>
-      <p class="field field-address">
-        <label>住所</label>${escapeHTML(user.usr_addr)}
-      </p>
-      <div class="personal-block personal-contacts">
-        <p class="field"><label>電話番号</label>${escapeHTML(user.usr_phone || "なし")}</p>
-        <p class="field"><label>携帯番号</label>${escapeHTML(user.usr_mobile)}</p>
-        <p class="field field-email"><label>E メール</label>${escapeHTML(user.usr_email)}</p>
-      </div>
-      <div class="personal-block personal-demographics">
-        <p class="field"><label>生年月日</label>${escapeHTML(user.usr_birthday)}</p>
-        <p class="field"><label>年齢</label>満${escapeHTML(user.usr_age)}歳</p>
-        <p class="field"><label>性別</label>${user.usr_gender === "1" ? "女" : "男"}</p>
-        <p class="field"><label>扶養家族</label>${user.usr_family === "1" ? "あり" : "なし"}</p>
-      </div>
+  )})</dd>
+        </div>
+        <div class="field field-address">
+          <dt>住所</dt><dd>${escapeHTML(user.usr_addr)}</dd>
+        </div>
+      </dl>
+      <dl class="personal-block personal-contacts">
+        <div class="field"><dt>電話番号</dt><dd>${escapeHTML(user.usr_phone || "なし")}</dd></div>
+        <div class="field"><dt>携帯番号</dt><dd>${escapeHTML(user.usr_mobile)}</dd></div>
+        <div class="field field-email"><dt>E メール</dt><dd>${escapeHTML(user.usr_email)}</dd></div>
+      </dl>
+      <dl class="personal-block personal-demographics">
+        <div class="field"><dt>生年月日</dt><dd>${escapeHTML(user.usr_birthday)}</dd></div>
+        <div class="field"><dt>年齢</dt><dd>満${escapeHTML(user.usr_age)}歳</dd></div>
+        <div class="field"><dt>性別</dt><dd>${user.usr_gender === "1" ? "女" : "男"}</dd></div>
+        <div class="field"><dt>扶養家族</dt><dd>${user.usr_family === "1" ? "あり" : "なし"}</dd></div>
+      </dl>
     </div>
-    <p class="field field-licenses">
-      <label>免許・資格</label>${escapeHTML(user.usr_licenses).replace(
+    <dl>
+      <div class="field field-licenses">
+        <dt>免許・資格</dt><dd>${escapeHTML(user.usr_licenses).replace(
         /\n/g,
         "<br>"
-      )}
-    </p>
-    <div class="field-block field-skill">
-      <label>特技</label>${parseMarkdown(user.usr_skill)}
-    </div>
-    <div class="field-block field-motivation">
-      <label>志望動機</label>${parseMarkdown(user.usr_siboudouki)}
-    </div>
-    <p class="field field-access">
-      <label>通勤時間</label>${escapeHTML(user.usr_access)}
-    </p>
-    <div class="field-block field-hobby">
-      <label>趣味</label>${parseMarkdown(user.usr_hobby)}
-    </div>
+      )}</dd>
+      </div>
+    </dl>
+    <dl>
+      <div class="field-block field-skill">
+        <dt>特技</dt><dd>${parseMarkdown(user.usr_skill)}</dd>
+      </div>
+    </dl>
+    <dl>
+      <div class="field-block field-motivation">
+        <dt>志望動機</dt><dd>${parseMarkdown(user.usr_siboudouki)}</dd>
+      </div>
+    </dl>
+    <dl>
+      <div class="field field-access">
+        <dt>通勤時間</dt><dd>${escapeHTML(user.usr_access)}</dd>
+      </div>
+    </dl>
+    <dl>
+      <div class="field-block field-hobby">
+        <dt>趣味</dt><dd>${parseMarkdown(user.usr_hobby)}</dd>
+      </div>
+    </dl>
   `;
 
   simplehistInfo.innerHTML = `
-    <h2>学歴・職歴</h2>
     <ul class="history-list">
       ${simplehist
         .map(
@@ -74,7 +85,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const jobhist = await (await fetch("/api/jobhist")).json();
   jobhistInfo.innerHTML = `
-    <h2>職務経歴</h2>
     ${jobhist
       .map(
         (j) => `
@@ -89,7 +99,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const portrait = await (await fetch("/api/portrait")).json();
   portraitInfo.innerHTML = `
-    <h2>ポートレイト</h2>
     ${portrait
       .map(
         (p) => `
