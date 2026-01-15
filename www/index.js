@@ -16,41 +16,57 @@ document.addEventListener("DOMContentLoaded", async () => {
   dateTime.innerHTML = getTodayFormatted();
 
   userInfo.innerHTML = `
-    <div class="user-image">
-      <img src="/image.jpg" alt="User" loading="lazy">
-    </div>
-    <p><label>名前</label><span class="user-name">${escapeHTML(user.usr_name)} (${escapeHTML(
+    <div class="profile-top">
+      <div class="user-image">
+        <img src="/image.jpg" alt="User" loading="lazy">
+      </div>
+      <p class="field field-name">
+        <label>名前</label>
+        <span class="user-name">${escapeHTML(user.usr_name)} (${escapeHTML(
     user.usr_name_kana
   )})</span>
+      </p>
+      <p class="field field-address">
+        <label>住所</label>${escapeHTML(user.usr_addr)}
+      </p>
+      <div class="personal-block personal-contacts">
+        <p class="field"><label>電話番号</label>${escapeHTML(user.usr_phone || "なし")}</p>
+        <p class="field"><label>携帯番号</label>${escapeHTML(user.usr_mobile)}</p>
+        <p class="field field-email"><label>E メール</label>${escapeHTML(user.usr_email)}</p>
+      </div>
+      <div class="personal-block personal-demographics">
+        <p class="field"><label>生年月日</label>${escapeHTML(user.usr_birthday)}</p>
+        <p class="field"><label>年齢</label>満${escapeHTML(user.usr_age)}歳</p>
+        <p class="field"><label>性別</label>${user.usr_gender === "1" ? "女" : "男"}</p>
+        <p class="field"><label>扶養家族</label>${user.usr_family === "1" ? "あり" : "なし"}</p>
+      </div>
+    </div>
+    <p class="field field-licenses">
+      <label>免許・資格</label>${escapeHTML(user.usr_licenses).replace(
+        /\n/g,
+        "<br>"
+      )}
     </p>
-    <p><label>住所</label>${escapeHTML(user.usr_addr)}</p>
-    <div class="personal-block">
-      <p><label>電話番号</label>${escapeHTML(user.usr_phone || "なし")}</p>
-      <p><label>携帯番号</label>${escapeHTML(user.usr_mobile)}</p>
-      <p><label>E メール</label>${escapeHTML(user.usr_email)}</p>
+    <div class="field-block field-skill">
+      <label>特技</label>${parseMarkdown(user.usr_skill)}
     </div>
-    <div class="personal-block">
-      <p><label>生年月日</label>${escapeHTML(user.usr_birthday)}</p>
-      <p><label>年齢</label>満${escapeHTML(user.usr_age)}歳</p>
-      <p><label>性別</label>${user.usr_gender === "1" ? "女" : "男"}</p>
-      <p><label>扶養家族</label>${user.usr_family === "1" ? "あり" : "なし"}</p>
+    <div class="field-block field-motivation">
+      <label>志望動機</label>${parseMarkdown(user.usr_siboudouki)}
     </div>
-    <p><label>免許・資格</label>${escapeHTML(user.usr_licenses).replace(
-      /\n/g,
-      "<br>"
-    )}</p>
-    <div><label>特技</label>${parseMarkdown(user.usr_skill)}</div>
-    <div><label>志望動機</label>${parseMarkdown(user.usr_siboudouki)}</div>
-    <p><label>通勤時間</label>${escapeHTML(user.usr_access)}</p>
-    <div><label>趣味</label>${parseMarkdown(user.usr_hobby)}</div>
+    <p class="field field-access">
+      <label>通勤時間</label>${escapeHTML(user.usr_access)}
+    </p>
+    <div class="field-block field-hobby">
+      <label>趣味</label>${parseMarkdown(user.usr_hobby)}
+    </div>
   `;
 
   simplehistInfo.innerHTML = `
     <h2>学歴・職歴</h2>
-    <ul>
+    <ul class="history-list">
       ${simplehist
         .map(
-          (h) => `<li>${escapeHTML(h.hist_datetime)} ${escapeHTML(h.hist_status)}: ${escapeHTML(h.hist_name)}</li>`
+          (h) => `<li class="history-item">${escapeHTML(h.hist_datetime)} ${escapeHTML(h.hist_status)}: ${escapeHTML(h.hist_name)}</li>`
         )
         .join("")}
     </ul>
@@ -62,8 +78,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     ${jobhist
       .map(
         (j) => `
-          <h4>${escapeHTML(j.job_name)}</h4>
-          <div>${parseMarkdown(j.job_description)}</div>
+          <div class="job-entry">
+            <h4 class="job-title">${escapeHTML(j.job_name)}</h4>
+            <div class="job-detail">${parseMarkdown(j.job_description)}</div>
+          </div>
         `
       )
       .join("")}
@@ -75,8 +93,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     ${portrait
       .map(
         (p) => `
-          <h5>${escapeHTML(p.portrait_url)}</h5>
-          <div>${parseMarkdown(p.portrait_summary)}</div>
+          <div class="portrait-item">
+            <h5 class="portrait-title">${escapeHTML(p.portrait_url)}</h5>
+            <div class="portrait-body">${parseMarkdown(p.portrait_summary)}</div>
+          </div>
         `
       )
       .join("")}

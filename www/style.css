@@ -119,6 +119,53 @@ pre > code {
   text-align: right;
 }
 
+/* 履歴書レイアウト */
+.resume {
+  max-width: 210mm;
+  border-radius: 0;
+  border: 1px solid #111;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+.resume-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2px solid #111;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+.resume h1 {
+  font-size: 1.8rem;
+  letter-spacing: 0.35rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+.resume-date {
+  font-size: 0.9rem;
+  text-align: right;
+}
+.resume-section {
+  margin-top: 14px;
+  padding-top: 6px;
+}
+.resume-section:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+}
+.resume .section-title,
+.resume #simplehist-info h2,
+.resume #jobhist-info h2,
+.resume #portrait-info h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 10px;
+  padding: 4px 10px;
+  border-left: 4px solid #111;
+  background: #fff;
+  color: #111;
+}
+
 /* フォーム */
 form {
   display: flex;
@@ -196,6 +243,116 @@ p {
   clear: both;
 }
 
+.resume #user-info .profile-top {
+  position: relative;
+  padding-right: 200px;
+}
+.resume #user-info .profile-top .user-image {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 180px;
+  height: 240px;
+  margin: 0;
+  border: 1px solid #111;
+  float: none;
+}
+.resume #user-info .user-image img {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+.resume #user-info .field {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 4px 0;
+  margin: 0;
+}
+.resume #user-info label {
+  min-width: 6.5em;
+  padding: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111;
+  background: none;
+}
+.resume #user-info .field-address {
+  grid-column: 1 / -1;
+}
+.resume #user-info .user-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.resume #user-info .personal-block {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  padding: 4px 0 8px;
+  border-bottom: 1px solid #bbb;
+}
+.resume #user-info .personal-block .field {
+  display: grid;
+  gap: 2px;
+  border-bottom: none;
+  padding: 2px 0;
+}
+.resume #user-info .personal-contacts .field-email {
+  grid-column: 1 / -1;
+}
+.resume #user-info .field-block {
+  grid-column: 1 / -1;
+  padding: 6px 0 10px;
+  border-bottom: 1px solid #bbb;
+}
+.resume #user-info .field-block label {
+  display: block;
+  margin-bottom: 4px;
+}
+.resume #user-info .field-block:last-child {
+  border-bottom: none;
+}
+
+.resume #simplehist-info .history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.resume #simplehist-info .history-item {
+  padding: 6px 0;
+  border-bottom: 1px solid #bbb;
+}
+.resume #simplehist-info .history-item:last-child {
+  border-bottom: none;
+}
+.resume #jobhist-info .job-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 10px 0 4px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #111;
+}
+.resume #jobhist-info .job-detail {
+  padding-bottom: 6px;
+}
+.resume #portrait-info .portrait-title {
+  margin: 8px 0 4px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: #f7f7f7;
+  color: #111;
+  padding: 6px 10px;
+  border: 1px solid #111;
+  border-bottom: none;
+}
+.resume #portrait-info .portrait-body {
+  border: 1px solid #bbb;
+  border-top: none;
+  padding: 8px 10px;
+  margin: 0 0 10px;
+}
+
 /* エントリー */
 .entry {
   border: 1px solid #ddd;
@@ -263,4 +420,32 @@ a:hover {
     float: none;
     margin: 0 auto 20px auto;
   }
+  .resume #user-info .profile-top {
+    padding-right: 0;
+  }
+  .resume #user-info .profile-top .user-image {
+    position: static;
+    width: 60%;
+    height: auto;
+    justify-self: center;
+  }
+}
+
+@media print {
+  body {
+    padding: 0;
+    background: #fff;
+  }
+  .container {
+    box-shadow: none;
+  }
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 12mm;
 }
