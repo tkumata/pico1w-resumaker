@@ -9,11 +9,6 @@
 html {
   font-size: 16px;
 }
-/* @media only screen and (orientation: landscape) and (max-device-height: 430px) {
-  html {
-    font-size: 14px;
-  }
-} */
 body {
   font-size: 1rem;
   line-height: 1.7;
@@ -56,24 +51,40 @@ table td {
 
 /* タイポグラフィ */
 h1 {
-  margin-bottom: 10px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2rem;
+  margin: 0 0 16px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #333;
 }
 h2,
 h3,
 h4 {
   padding: 0 5px;
-  background-color: #999;
-  color: #f0f0f0;
+  background-color: #f0f0f0;
+  color: #333;
 }
 h2 {
-  margin-bottom: 8px;
-  background-color: #333;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 20px 0 10px;
+  padding: 4px 8px;
+  border-left: 4px solid #333;
+  background-color: #f0f0f0;
+  color: #333;
 }
 h3 {
-  margin-bottom: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 16px 0 8px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #bbb;
 }
 h4 {
-  margin: 5px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 12px 0 6px;
 }
 h4,
 h5,
@@ -81,11 +92,14 @@ h6 {
   font-family: sans-serif;
 }
 h5 {
-  margin: 20px 2px 2px 2px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 16px 2px 2px 2px;
 }
 h6 {
-  font-size: 16px;
-  margin: 1px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 2px 0;
 }
 pre {
   background-color: #ededed;
@@ -103,11 +117,6 @@ pre > code {
 #datetime {
   font-size: 14px;
   text-align: right;
-}
-#portrait-info > h5 {
-  background: #333;
-  color: #f0f0f0;
-  padding: 10px;
 }
 
 /* フォーム */
@@ -152,8 +161,8 @@ p {
   padding: 0 5px;
   font-weight: bold;
   font-size: 16px;
-  color: #fff;
-  background-color: #555;
+  color: #f0f0f0;
+  background-color: #333;
 }
 .personal-block {
   display: flex;
@@ -233,6 +242,13 @@ a {
 }
 a:hover {
   text-decoration: underline;
+}
+
+/* ポートレイト */
+#portrait-info > h5 {
+  background: #333;
+  color: #f0f0f0;
+  padding: 10px;
 }
 
 /* モバイル対応 */
