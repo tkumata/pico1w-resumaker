@@ -44,29 +44,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       </dl>
     </div>
     <dl>
-      <div class="field field-licenses">
+      <div class="field-block field-licenses">
         <dt>免許・資格</dt><dd>${escapeHTML(user.usr_licenses).replace(
         /\n/g,
         "<br>"
       )}</dd>
       </div>
-    </dl>
-    <dl>
       <div class="field-block field-skill">
         <dt>特技</dt><dd>${parseMarkdown(user.usr_skill)}</dd>
       </div>
-    </dl>
-    <dl>
       <div class="field-block field-motivation">
         <dt>志望動機</dt><dd>${parseMarkdown(user.usr_siboudouki)}</dd>
       </div>
-    </dl>
-    <dl>
-      <div class="field field-access">
+      <div class="field-block field-access">
         <dt>通勤時間</dt><dd>${escapeHTML(user.usr_access)}</dd>
       </div>
-    </dl>
-    <dl>
       <div class="field-block field-hobby">
         <dt>趣味</dt><dd>${parseMarkdown(user.usr_hobby)}</dd>
       </div>
