@@ -323,6 +323,7 @@ p {
 .resume #user-info .field-block dt {
   display: block;
   margin-bottom: 4px;
+  font-size: 17px;
 }
 .resume #user-info .field-block:last-child {
   border-bottom: none;
