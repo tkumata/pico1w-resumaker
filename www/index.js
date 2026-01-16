@@ -32,23 +32,37 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </dl>
       <dl class="personal-block personal-contacts">
-        <div class="field"><dt>電話番号</dt><dd>${escapeHTML(user.usr_phone || "なし")}</dd></div>
-        <div class="field"><dt>携帯番号</dt><dd>${escapeHTML(user.usr_mobile)}</dd></div>
-        <div class="field field-email"><dt>E メール</dt><dd>${escapeHTML(user.usr_email)}</dd></div>
+        <div class="field"><dt>電話番号</dt><dd>${escapeHTML(
+          user.usr_phone || "なし"
+        )}</dd></div>
+        <div class="field"><dt>携帯番号</dt><dd>${escapeHTML(
+          user.usr_mobile
+        )}</dd></div>
+        <div class="field field-email"><dt>E メール</dt><dd>${escapeHTML(
+          user.usr_email
+        )}</dd></div>
       </dl>
       <dl class="personal-block personal-demographics">
-        <div class="field"><dt>生年月日</dt><dd>${escapeHTML(user.usr_birthday)}</dd></div>
-        <div class="field"><dt>年齢</dt><dd>満${escapeHTML(user.usr_age)}歳</dd></div>
-        <div class="field"><dt>性別</dt><dd>${user.usr_gender === "1" ? "女" : "男"}</dd></div>
-        <div class="field"><dt>扶養家族</dt><dd>${user.usr_family === "1" ? "あり" : "なし"}</dd></div>
+        <div class="field"><dt>生年月日</dt><dd>${escapeHTML(
+          user.usr_birthday
+        )}</dd></div>
+        <div class="field"><dt>年齢</dt><dd>満${escapeHTML(
+          user.usr_age
+        )}歳</dd></div>
+        <div class="field"><dt>性別</dt><dd>${
+          user.usr_gender === "1" ? "女" : "男"
+        }</dd></div>
+        <div class="field"><dt>扶養家族</dt><dd>${
+          user.usr_family === "1" ? "あり" : "なし"
+        }</dd></div>
       </dl>
     </div>
     <dl>
       <div class="field-block field-licenses">
         <dt>免許・資格</dt><dd>${escapeHTML(user.usr_licenses).replace(
-        /\n/g,
-        "<br>"
-      )}</dd>
+          /\n/g,
+          "<br>"
+        )}</dd>
       </div>
       <div class="field-block field-skill">
         <dt>特技</dt><dd>${parseMarkdown(user.usr_skill)}</dd>
@@ -69,7 +83,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     <ul class="history-list">
       ${simplehist
         .map(
-          (h) => `<li class="history-item">${escapeHTML(h.hist_datetime)} ${escapeHTML(h.hist_status)}: ${escapeHTML(h.hist_name)}</li>`
+          (h) =>
+            `<li class="history-item">${escapeHTML(
+              h.hist_datetime
+            )} ${escapeHTML(h.hist_status)}: ${escapeHTML(h.hist_name)}</li>`
         )
         .join("")}
     </ul>
@@ -95,8 +112,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       .map(
         (p) => `
           <div class="portrait-item">
-            <h5 class="portrait-title">${escapeHTML(p.portrait_url)}</h5>
-            <div class="portrait-body">${parseMarkdown(p.portrait_summary)}</div>
+            <h5 class="portrait-title"><a target="_blank" href="${escapeHTML(
+              p.portrait_url
+            )}">${escapeHTML(p.portrait_url)}</a></h5>
+            <div class="portrait-body">${parseMarkdown(
+              p.portrait_summary
+            )}</div>
           </div>
         `
       )
@@ -114,13 +135,13 @@ function parseMarkdown(text) {
 
 function escapeHTML(text) {
   if (!text) return "";
-  return text.replace(/[&<>"']/g, function(match) {
+  return text.replace(/[&<>"']/g, function (match) {
     const escape = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
     };
     return escape[match];
   });
@@ -136,9 +157,11 @@ function getTodayFormatted() {
 }
 
 function ipToNum(ip) {
-  return ip
-    .split(".")
-    .reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+  return (
+    ip
+      .split(".")
+      .reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0
+  );
 }
 
 // admin クラスの要素を表示/非表示にする関数
@@ -156,7 +179,7 @@ async function checkServerNetwork() {
   // Default AP network
   adminNetworks.push({
     base: ipToNum("192.168.4.0"),
-    mask: ipToNum("255.255.255.0")
+    mask: ipToNum("255.255.255.0"),
   });
 
   try {
@@ -169,7 +192,7 @@ async function checkServerNetwork() {
         const staBase = staIp & staMask;
         adminNetworks.push({
           base: staBase,
-          mask: staMask
+          mask: staMask,
         });
       }
     }
@@ -177,13 +200,16 @@ async function checkServerNetwork() {
     console.warn("Failed to fetch network info", e);
   }
 
-  const isIp = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(currentHost);
+  const isIp =
+    /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(
+      currentHost
+    );
 
   let isAdmin = false;
 
   if (isIp) {
     const hostNum = ipToNum(currentHost);
-    isAdmin = adminNetworks.some(net => (hostNum & net.mask) === net.base);
+    isAdmin = adminNetworks.some((net) => (hostNum & net.mask) === net.base);
   }
 
   toggleAdminElements(isAdmin);
@@ -191,7 +217,7 @@ async function checkServerNetwork() {
 }
 
 // ページロード時に実行
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
   checkServerNetwork();
 });
 

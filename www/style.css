@@ -305,7 +305,6 @@ p {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px 16px;
   padding: 4px 0 8px;
-  border-bottom: 1px solid #bbb;
 }
 .resume #user-info .personal-block .field {
   display: grid;
@@ -319,7 +318,6 @@ p {
 .resume #user-info .field-block {
   grid-column: 1 / -1;
   padding: 6px 0 10px;
-  border-bottom: 1px solid #bbb;
 }
 .resume #user-info .field-block dt {
   display: block;
@@ -353,13 +351,13 @@ p {
   padding-bottom: 6px;
 }
 .resume #portrait-info .portrait-title {
-  margin: 8px 0 4px;
+  margin: 8px 0 0;
   font-size: 0.95rem;
   font-weight: 600;
   background: #f7f7f7;
   color: #333;
   padding: 6px 10px;
-  border: 1px solid #333;
+  border: 1px solid #bbb;
   border-bottom: none;
 }
 .resume #portrait-info .portrait-body {
