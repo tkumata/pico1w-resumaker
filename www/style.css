@@ -211,6 +211,9 @@ button:hover {
 p {
   margin-block: 0 1em;
 }
+.resume ul {
+  margin-bottom: 16px;
+}
 
 /* ユーザー情報 */
 #user-info label {
